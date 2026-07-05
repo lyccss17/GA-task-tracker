@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GA Task</title>
-    <link rel="icon" type="image/png" href="LOGO.jpg">
+    <title>Team Task Tracker</title>
+    <link rel="icon" type="image/png" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23667eea'%3E%3Cpath d='M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z'/%3E%3C/svg%3E">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -873,36 +873,8 @@
     }
 
     // ========== API ==========
-    // ========== FIXED DATE FUNCTIONS ==========
-function formatDate(d) { 
-    if(!d) return ''; 
-    // If it's already a string in YYYY-MM-DD format, return as-is
-    if(typeof d === 'string' && d.match(/^\d{4}-\d{2}-\d{2}$/)) return d;
-    if(typeof d === 'string' && d.includes('T')) return d.split('T')[0]; 
-    return d; 
-}
-
-// Get today's date in local timezone as YYYY-MM-DD
-function getTodayStr() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-// Compare two dates as strings (YYYY-MM-DD)
-function compareDates(dateStr1, dateStr2) {
-    if (!dateStr1 || !dateStr2) return false;
-    return dateStr1 === dateStr2;
-}
-
-// Check if a date is overdue (before today)
-function isDateOverdue(dateStr) {
-    if (!dateStr) return false;
-    const today = getTodayStr();
-    return dateStr < today; // String comparison works with YYYY-MM-DD format
-}
+    function formatDate(d) { if(!d) return ''; if(typeof d==='string' && d.includes('T')) return d.split('T')[0]; return d; }
+    
     async function callAPI(action, data={}) {
         const params = new URLSearchParams({action,...data});
         const res = await fetch(`${CONFIG.API_URL}?${params.toString()}`);
@@ -930,9 +902,10 @@ function isDateOverdue(dateStr) {
 
     // ========== CALENDAR - Google Calendar Style with Task Titles ==========
     function renderCalendar() {
-    const year = calendarDate.getFullYear();
-    const month = calendarDate.getMonth();
-    const todayStr = getTodayStr(); 
+        const year = calendarDate.getFullYear();
+        const month = calendarDate.getMonth();
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
         
         document.getElementById('calendarMonthYear').textContent = 
             new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -956,19 +929,14 @@ function isDateOverdue(dateStr) {
         }
         
         // Current month days
-          for (let day = 1; day <= daysInMonth; day++) {
-        const dateObj = new Date(year, month, day);
-        const dateStr = dateObj.toISOString().split('T')[0]; // This stays the same
-        const isToday = dateStr === todayStr; // Compare strings directly
-        
-        // Get tasks for this day - compare dates as strings
-        const dayTasks = tasks.filter(t => {
-            const due = formatDate(t.duedate);
-            return due === dateStr; // Direct string comparison
-        });
-        
-        // Check if overdue - use the fixed function
-        const isOverdue = isDateOverdue(dateStr);
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateObj = new Date(year, month, day);
+            const dateStr = dateObj.toISOString().split('T')[0];
+            const isToday = dateStr === todayStr;
+            const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
+            
+            // Get tasks for this day
+            const dayTasks = tasks.filter(t => formatDate(t.duedate) === dateStr);
             
             // Sort tasks: completed last, then overdue first, then by priority
             const sortedTasks = [...dayTasks].sort((a, b) => {
@@ -1057,40 +1025,36 @@ function isDateOverdue(dateStr) {
         `);
     }
 
- function showDayTasks(dateStr) {
-    const dayTasks = tasks.filter(t => {
-        const due = formatDate(t.duedate);
-        return due === dateStr;
-    });
-    
-    if (!dayTasks.length) {
-        showToast(`No tasks for ${dateStr}`, 'info');
-        return;
+    function showDayTasks(dateStr) {
+        const dayTasks = tasks.filter(t => formatDate(t.duedate) === dateStr);
+        if (!dayTasks.length) {
+            showToast(`No tasks for ${dateStr}`, 'info');
+            return;
+        }
+        const sorted = [...dayTasks].sort((a, b) => {
+            const aCompleted = a.status?.toLowerCase() === 'completed';
+            const bCompleted = b.status?.toLowerCase() === 'completed';
+            if (aCompleted && !bCompleted) return 1;
+            if (!aCompleted && bCompleted) return -1;
+            return 0;
+        });
+        
+        let html = `<div style="max-height:350px;overflow-y:auto;">`;
+        sorted.forEach(t => {
+            const status = t.status?.toLowerCase() || 'pending';
+            const badgeClass = status === 'completed' ? 'badge-completed' : status === 'in progress' ? 'badge-inprogress' : 'badge-pending';
+            const today = new Date().toISOString().split('T')[0];
+            const isOverdue = dateStr < today && status !== 'completed';
+            const taskId = t.id||t.taskid||t.taskId||t.ID||t['Task ID'];
+            html += `<div style="padding:0.4rem 0;border-bottom:1px solid #eef2f6;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.3rem;cursor:pointer;" onclick="showTaskDetails('${taskId}')">
+                <span><strong>${t.title || 'Task'}</strong> <span style="font-size:0.7rem;color:#64748b;">${t.assignedto||t.assignedTo||''}</span></span>
+                <span><span class="badge ${badgeClass}">${t.status || 'Pending'}</span> ${isOverdue ? '<span style="color:#ef4444;font-weight:600;font-size:0.7rem;">⚠️ Overdue</span>' : ''}</span>
+            </div>`;
+        });
+        html += `</div>`;
+        const dateDisplay = new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        openModal(`📅 ${dateDisplay} (${dayTasks.length} tasks)`, html);
     }
-    
-    const sorted = [...dayTasks].sort((a, b) => {
-        const aCompleted = a.status?.toLowerCase() === 'completed';
-        const bCompleted = b.status?.toLowerCase() === 'completed';
-        if (aCompleted && !bCompleted) return 1;
-        if (!aCompleted && bCompleted) return -1;
-        return 0;
-    });
-    
-    let html = `<div style="max-height:350px;overflow-y:auto;">`;
-    sorted.forEach(t => {
-        const status = t.status?.toLowerCase() || 'pending';
-        const badgeClass = status === 'completed' ? 'badge-completed' : status === 'in progress' ? 'badge-inprogress' : 'badge-pending';
-        const isOverdue = isDateOverdue(dateStr) && status !== 'completed';
-        const taskId = t.id || t.taskid || t.taskId || t.ID || t['Task ID'] || '';
-        html += `<div style="padding:0.4rem 0;border-bottom:1px solid #eef2f6;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.3rem;cursor:pointer;" onclick="showTaskDetails('${taskId}')">
-            <span><strong>${t.title || 'Task'}</strong> <span style="font-size:0.7rem;color:#64748b;">${t.assignedto||t.assignedTo||''}</span></span>
-            <span><span class="badge ${badgeClass}">${t.status || 'Pending'}</span> ${isOverdue ? '<span style="color:#ef4444;font-weight:600;font-size:0.7rem;">⚠️ Overdue</span>' : ''}</span>
-        </div>`;
-    });
-    html += `</div>`;
-    const dateDisplay = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-    openModal(`📅 ${dateDisplay} (${dayTasks.length} tasks)`, html);
-}
 
     // ========== LOAD ==========
     async function loadData() {
@@ -1475,4 +1439,4 @@ function isDateOverdue(dateStr) {
     console.log('✅ TaskFlow loaded. Features: Notifications, Calendar with Task Titles, Task Filter');
 </script>
 </body>
-</html>   
+</html>

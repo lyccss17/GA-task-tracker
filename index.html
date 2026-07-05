@@ -73,17 +73,6 @@
             border-color: #667eea;
             box-shadow: 0 2px 8px rgba(102,126,234,0.3);
         }
-        .notification-badge {
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            padding: 0.1rem 0.4rem;
-            font-size: 0.6rem;
-            font-weight: 700;
-            margin-left: 0.2rem;
-            min-width: 18px;
-            text-align: center;
-        }
         .container {
             max-width: 1440px;
             margin: 1.5rem auto;
@@ -198,7 +187,7 @@
             border-radius: 12px 12px 12px 4px;
             box-shadow: 0 6px 14px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.02);
             width: 220px;
-            min-height: 140px;
+            min-height: 120px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -218,23 +207,6 @@
             word-break: break-word;
             flex: 1;
         }
-        .sticky-note .note-attachment {
-            margin-top: 0.4rem;
-            font-size: 0.7rem;
-            background: rgba(0,0,0,0.04);
-            padding: 0.2rem 0.5rem;
-            border-radius: 8px;
-            display: inline-block;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .sticky-note .note-attachment a {
-            color: #2563eb;
-            text-decoration: none;
-        }
-        .sticky-note .note-attachment a:hover { text-decoration: underline; }
         .sticky-note .note-footer {
             display: flex;
             justify-content: space-between;
@@ -338,7 +310,7 @@
         .modal.active { display: flex; }
         .modal-content {
             background: white; padding: 1.8rem; border-radius: 28px;
-            max-width: 560px; width: 92%; max-height: 90vh; overflow-y: auto;
+            max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto;
             box-shadow: 0 24px 48px rgba(0,0,0,0.08);
         }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
@@ -350,7 +322,6 @@
             font-size: 0.9rem; background: #fafbfc;
         }
         .form-group textarea { min-height: 70px; resize: vertical; }
-        .form-group input[type="file"] { padding: 0.4rem; background: white; }
         .view { display: none; }
         .view.active { display: block; }
         .tab-buttons { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
@@ -366,61 +337,119 @@
         .log-time { color: #94a3b8; font-size: 0.7rem; }
         .password-protected { background: #fef2f2; padding: 0.3rem 0.8rem; border-radius: 40px; color: #b91c1c; font-size: 0.75rem; margin-bottom: 0.8rem; display: inline-block; }
         
-        /* Calendar Styles */
+        /* Calendar Styles - Google Calendar Like */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
+            gap: 1px;
             background: #e9edf2;
             border-radius: 12px;
             overflow: hidden;
         }
         .calendar-header {
-            background: #f1f5f9;
-            padding: 0.5rem;
+            background: #f8fafc;
+            padding: 0.6rem 0.3rem;
             text-align: center;
             font-weight: 600;
             font-size: 0.75rem;
             color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+        .calendar-header.weekend { color: #ef4444; }
         .calendar-day {
             background: white;
-            padding: 0.3rem;
-            min-height: 70px;
+            padding: 0.3rem 0.3rem 0.1rem;
+            min-height: 80px;
             position: relative;
             cursor: pointer;
             transition: 0.1s;
+            border: 1px solid transparent;
         }
-        .calendar-day:hover { background: #f8fafc; }
+        .calendar-day:hover { 
+            background: #f1f5f9; 
+            border-color: #667eea;
+            z-index: 2;
+        }
         .calendar-day .day-number {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 500;
             color: #1e293b;
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 50%;
+            line-height: 1.4;
+            min-width: 24px;
+            text-align: center;
+        }
+        .calendar-day.today .day-number {
+            background: #667eea;
+            color: white;
+            font-weight: 700;
         }
         .calendar-day .day-tasks {
-            font-size: 0.6rem;
             margin-top: 0.2rem;
+            font-size: 0.6rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
         }
-        .calendar-day .day-tasks .task-dot {
-            display: inline-block;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            margin-right: 2px;
+        .calendar-day .task-bubble {
+            background: #dbeafe;
+            color: #1e4e8c;
+            padding: 0.05rem 0.3rem;
+            border-radius: 8px;
+            font-size: 0.55rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            cursor: pointer;
+            border-left: 2px solid #667eea;
         }
-        .calendar-day .day-tasks .task-dot.completed { background: #34d399; }
-        .calendar-day .day-tasks .task-dot.pending { background: #fbbf24; }
-        .calendar-day .day-tasks .task-dot.overdue { background: #ef4444; }
+        .calendar-day .task-bubble.completed {
+            background: #d1fae5;
+            border-left-color: #34d399;
+            color: #065f46;
+        }
+        .calendar-day .task-bubble.overdue {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+        .calendar-day .task-bubble.pending {
+            background: #fef3c7;
+            border-left-color: #fbbf24;
+            color: #b45309;
+        }
+        .calendar-day .task-bubble.inprogress {
+            background: #dbeafe;
+            border-left-color: #60a5fa;
+            color: #1e4e8c;
+        }
+        .calendar-day .day-more {
+            font-size: 0.55rem;
+            color: #94a3b8;
+            padding: 0.05rem 0.2rem;
+            cursor: pointer;
+        }
+        .calendar-day .day-more:hover { color: #667eea; }
         .calendar-day.empty { background: #fafbfc; }
-        .calendar-day.today { border: 2px solid #667eea; }
-        .calendar-day.has-tasks { background: #f0f4ff; }
+        .calendar-day.empty .day-number { color: #cbd5e1; }
+        .calendar-day.other-month .day-number { color: #cbd5e1; }
+        .calendar-day.weekend .day-number { color: #ef4444; }
+        .calendar-day.weekend.other-month .day-number { color: #fca5a5; }
+        
         .calendar-nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
-        .calendar-nav h3 { font-size: 1.1rem; font-weight: 600; }
+        .calendar-nav h3 { font-size: 1.2rem; font-weight: 600; }
+        .calendar-nav .nav-group { display: flex; gap: 0.3rem; }
         
         /* Notification Panel */
         .notification-panel {
@@ -504,14 +533,18 @@
             .stat-card { margin-bottom: 0.6rem; }
             .analytics-sm { max-width: 100%; }
             .notification-panel { width: 300px; right: -320px; }
-            .calendar-day { min-height: 50px; }
+            .calendar-day { min-height: 50px; padding: 0.2rem; }
+            .calendar-day .task-bubble { font-size: 0.5rem; padding: 0.02rem 0.2rem; }
             .calendar-day .day-tasks { display: none; }
+            .calendar-day .day-more { display: none; }
         }
         @media (max-width: 500px) {
             .dash-row-1, .dash-row-2 { grid-template-columns: 1fr; }
             .profile-card { grid-column: auto; }
             .sticky-note { width: 100%; }
             .notification-panel { width: 100%; right: -100%; top: 60px; max-height: 70vh; }
+            .calendar-day { min-height: 40px; padding: 0.15rem; }
+            .calendar-day .day-number { font-size: 0.7rem; min-width: 18px; }
         }
         .loading { text-align: center; padding: 2rem; }
         .spinner { border: 4px solid #e9edf2; border-top: 4px solid #667eea; border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 0 auto; }
@@ -526,26 +559,6 @@
         .toast-error { background: #f87171; }
         .toast-info { background: #667eea; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Attachment preview in modal */
-        .attachment-preview {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.3rem 0.6rem;
-            background: #f1f5f9;
-            border-radius: 8px;
-            margin-top: 0.3rem;
-            font-size: 0.8rem;
-        }
-        .attachment-preview i { color: #667eea; }
-        .attachment-preview .remove-attachment {
-            background: none;
-            border: none;
-            color: #ef4444;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
     </style>
 </head>
 <body>
@@ -650,16 +663,21 @@
         <div class="card">
             <div class="card-title"><span><i class="fas fa-calendar-alt"></i> Calendar View</span></div>
             <div class="calendar-nav">
-                <button class="btn btn-sm btn-outline" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                <div class="nav-group">
+                    <button class="btn btn-sm btn-outline" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                    <button class="btn btn-sm btn-outline" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
                 <h3 id="calendarMonthYear">January 2024</h3>
-                <button class="btn btn-sm btn-outline" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
-                <button class="btn btn-sm btn-outline" onclick="goToday()">Today</button>
+                <div class="nav-group">
+                    <button class="btn btn-sm btn-outline" onclick="goToday()">Today</button>
+                </div>
             </div>
             <div id="calendarContainer" class="calendar-grid"></div>
             <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap; font-size:0.8rem;">
-                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#34d399;margin-right:0.3rem;"></span> Completed</span>
-                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#fbbf24;margin-right:0.3rem;"></span> Pending</span>
-                <span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#ef4444;margin-right:0.3rem;"></span> Overdue</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#d1fae5;border-left:3px solid #34d399;margin-right:0.3rem;"></span> Completed</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#fef3c7;border-left:3px solid #fbbf24;margin-right:0.3rem;"></span> Pending</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#fef2f2;border-left:3px solid #ef4444;margin-right:0.3rem;"></span> Overdue</span>
+                <span><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#dbeafe;border-left:3px solid #60a5fa;margin-right:0.3rem;"></span> In Progress</span>
             </div>
         </div>
     </div>
@@ -723,7 +741,7 @@
         hasRequestedNotificationPermission = true;
     }
 
-    function sendBrowserNotification(title, body, icon = '📋') {
+    function sendBrowserNotification(title, body) {
         // In-app notification
         addNotification(title, body);
         
@@ -823,7 +841,6 @@
         const panel = document.getElementById('notificationPanel');
         panel.classList.toggle('open');
         if (panel.classList.contains('open')) {
-            // Mark as read when opened
             const unread = notifications.filter(n => !n.read);
             if (unread.length) {
                 unread.forEach(n => n.read = true);
@@ -871,65 +888,19 @@
     async function addTaskToSheet(d) { return callAPI('addTask', d); }
     async function updateTaskInSheet(id,d) { return callAPI('updateTask', {id,...d}); }
     async function deleteTaskFromSheet(id) { return callAPI('deleteTask', {id}); }
-    async function addBulletinToSheet(content,type,attachment) { return callAPI('addBulletin',{content,type,attachment}); }
+    async function addBulletinToSheet(content,type) { return callAPI('addBulletin',{content,type}); }
+    async function updateBulletinInSheet(id,content,type) { return callAPI('updateBulletin',{id,content,type}); }
+    async function deleteBulletinFromSheet(id) { return callAPI('deleteBulletin',{id}); }
     async function addStoreToSheet(d) { return callAPI('addStore', d); }
     async function updateStoreInSheet(id,d) { return callAPI('updateStore',{id,...d}); }
     async function deleteStoreFromSheet(id) { return callAPI('deleteStore',{id}); }
 
-    // ========== LOCAL BULLETIN CRUD ==========
+    // ========== BULLETIN CRUD (No local storage, pure Google Sheets) ==========
     function getBulletinId(post) {
-        return post.id || post.postid || post.bulletinid || post['Bulletin ID'] || post._localId || `bul_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+        return post.id || post.postid || post.bulletinid || post['Bulletin ID'] || `bul_${Date.now()}`;
     }
 
-    function updateBulletinLocal(id, content, type, attachment) {
-        const index = bulletins.findIndex(b => getBulletinId(b) === id);
-        if (index === -1) { showToast('Bulletin not found', 'error'); return false; }
-        bulletins[index].content = content;
-        bulletins[index].type = type;
-        bulletins[index].attachment = attachment || bulletins[index].attachment;
-        bulletins[index]._updated = true;
-        saveBulletinsToStorage();
-        renderBulletin();
-        showToast('✅ Bulletin updated locally', 'success');
-        return true;
-    }
-
-    function deleteBulletinLocal(id) {
-        const index = bulletins.findIndex(b => getBulletinId(b) === id);
-        if (index === -1) { showToast('Bulletin not found', 'error'); return false; }
-        bulletins.splice(index, 1);
-        saveBulletinsToStorage();
-        renderBulletin();
-        showToast('✅ Bulletin deleted locally', 'success');
-        return true;
-    }
-
-    function saveBulletinsToStorage() {
-        try {
-            localStorage.setItem('taskflow_bulletins', JSON.stringify(bulletins));
-        } catch(e) {}
-    }
-
-    function loadBulletinsFromStorage() {
-        try {
-            const saved = localStorage.getItem('taskflow_bulletins');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                const fetchedIds = new Set(bulletins.map(b => getBulletinId(b)));
-                const savedItems = parsed.filter(b => {
-                    const id = getBulletinId(b);
-                    return !fetchedIds.has(id) || b._updated;
-                });
-                savedItems.forEach(sb => {
-                    const idx = bulletins.findIndex(b => getBulletinId(b) === getBulletinId(sb));
-                    if (idx !== -1) bulletins[idx] = sb;
-                    else bulletins.push(sb);
-                });
-            }
-        } catch(e) {}
-    }
-
-    // ========== CALENDAR ==========
+    // ========== CALENDAR - Google Calendar Style ==========
     function renderCalendar() {
         const year = calendarDate.getFullYear();
         const month = calendarDate.getMonth();
@@ -942,16 +913,20 @@
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const daysInPrevMonth = new Date(year, month, 0).getDate();
+        const currentMonth = month;
         
         let html = '';
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        dayNames.forEach(d => html += `<div class="calendar-header">${d}</div>`);
+        dayNames.forEach((d, idx) => {
+            const isWeekend = idx === 0 || idx === 6;
+            html += `<div class="calendar-header ${isWeekend ? 'weekend' : ''}">${d}</div>`;
+        });
         
         // Previous month days
         const startOffset = firstDay;
         for (let i = startOffset - 1; i >= 0; i--) {
             const day = daysInPrevMonth - i;
-            html += `<div class="calendar-day empty"><div class="day-number" style="color:#94a3b8;">${day}</div></div>`;
+            html += `<div class="calendar-day empty other-month"><div class="day-number">${day}</div></div>`;
         }
         
         // Current month days
@@ -959,39 +934,51 @@
             const dateObj = new Date(year, month, day);
             const dateStr = dateObj.toISOString().split('T')[0];
             const isToday = dateStr === todayStr;
+            const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
             
-            // Get tasks for this day
+            // Get tasks for this day - limit to show max 3 bubbles
             const dayTasks = tasks.filter(t => {
                 const due = formatDate(t.duedate);
                 return due === dateStr;
             });
             
-            const hasTasks = dayTasks.length > 0;
-            const completedCount = dayTasks.filter(t => t.status?.toLowerCase() === 'completed').length;
-            const pendingCount = dayTasks.filter(t => t.status?.toLowerCase() !== 'completed').length;
-            const hasOverdue = dayTasks.some(t => t.status?.toLowerCase() !== 'completed' && dateStr < todayStr);
+            const sortedTasks = dayTasks.sort((a, b) => {
+                const statusOrder = { 'completed': 3, 'in progress': 2, 'pending': 1 };
+                const aOrder = statusOrder[a.status?.toLowerCase()] || 0;
+                const bOrder = statusOrder[b.status?.toLowerCase()] || 0;
+                return bOrder - aOrder;
+            });
             
-            let taskDots = '';
-            if (hasTasks) {
-                taskDots = `<div class="day-tasks">`;
-                if (completedCount > 0) taskDots += `<span class="task-dot completed" title="${completedCount} completed"></span>`;
-                if (pendingCount > 0) taskDots += `<span class="task-dot pending" title="${pendingCount} pending"></span>`;
-                if (hasOverdue) taskDots += `<span class="task-dot overdue" title="Overdue"></span>`;
-                taskDots += ` <span style="font-size:0.6rem;color:#64748b;">${dayTasks.length}</span>`;
-                taskDots += `</div>`;
+            const hasTasks = dayTasks.length > 0;
+            const visibleTasks = sortedTasks.slice(0, 3);
+            const remainingCount = sortedTasks.length - 3;
+            
+            let taskBubbles = '';
+            visibleTasks.forEach(task => {
+                const status = task.status?.toLowerCase() || 'pending';
+                const isOverdue = dateStr < todayStr && status !== 'completed';
+                let bubbleClass = status === 'completed' ? 'completed' : 
+                                 status === 'in progress' ? 'inprogress' :
+                                 isOverdue ? 'overdue' : 'pending';
+                const displayName = task.title && task.title.length > 20 ? task.title.slice(0, 18) + '…' : (task.title || 'Task');
+                taskBubbles += `<div class="task-bubble ${bubbleClass}" onclick="event.stopPropagation();showDayTasks('${dateStr}')" title="${task.title || 'Task'}">${displayName}</div>`;
+            });
+            
+            if (remainingCount > 0) {
+                taskBubbles += `<div class="day-more" onclick="event.stopPropagation();showDayTasks('${dateStr}')">+${remainingCount} more</div>`;
             }
             
-            const classes = `calendar-day ${isToday ? 'today' : ''} ${hasTasks ? 'has-tasks' : ''}`;
+            const classes = `calendar-day ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}`;
             html += `<div class="${classes}" onclick="showDayTasks('${dateStr}')">
                 <div class="day-number">${day}</div>
-                ${taskDots}
+                ${hasTasks ? `<div class="day-tasks">${taskBubbles}</div>` : ''}
             </div>`;
         }
         
         // Next month days
         const remaining = (7 - ((firstDay + daysInMonth) % 7)) % 7;
         for (let day = 1; day <= remaining; day++) {
-            html += `<div class="calendar-day empty"><div class="day-number" style="color:#94a3b8;">${day}</div></div>`;
+            html += `<div class="calendar-day empty other-month"><div class="day-number">${day}</div></div>`;
         }
         
         document.getElementById('calendarContainer').innerHTML = html;
@@ -1013,33 +1000,42 @@
             showToast(`No tasks for ${dateStr}`, 'info');
             return;
         }
-        let html = `<div style="max-height:300px;overflow-y:auto;">`;
-        dayTasks.forEach(t => {
+        // Sort: completed last, then overdue first
+        const sorted = dayTasks.sort((a, b) => {
+            const aCompleted = a.status?.toLowerCase() === 'completed';
+            const bCompleted = b.status?.toLowerCase() === 'completed';
+            if (aCompleted && !bCompleted) return 1;
+            if (!aCompleted && bCompleted) return -1;
+            return 0;
+        });
+        
+        let html = `<div style="max-height:350px;overflow-y:auto;">`;
+        sorted.forEach(t => {
             const status = t.status?.toLowerCase() || 'pending';
             const badgeClass = status === 'completed' ? 'badge-completed' : status === 'in progress' ? 'badge-inprogress' : 'badge-pending';
-            html += `<div style="padding:0.3rem 0;border-bottom:1px solid #eef2f6;display:flex;justify-content:space-between;align-items:center;">
-                <span>${t.title || ''}</span>
-                <span><span class="badge ${badgeClass}">${t.status || 'Pending'}</span></span>
+            const isOverdue = dateStr < new Date().toISOString().split('T')[0] && status !== 'completed';
+            const overdueClass = isOverdue ? 'due-date' : '';
+            html += `<div style="padding:0.4rem 0;border-bottom:1px solid #eef2f6;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.3rem;">
+                <span><strong>${t.title || 'Task'}</strong> <span style="font-size:0.7rem;color:#64748b;">${t.assignedto||t.assignedTo||''}</span></span>
+                <span><span class="badge ${badgeClass}">${t.status || 'Pending'}</span> ${isOverdue ? '<span style="color:#ef4444;font-weight:600;font-size:0.7rem;">⚠️ Overdue</span>' : ''}</span>
             </div>`;
         });
         html += `</div>`;
-        openModal(`Tasks for ${dateStr}`, html);
+        const dateDisplay = new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        openModal(`📅 ${dateDisplay}`, html);
     }
 
     // ========== LOAD ==========
+    let previousTaskCount = 0;
+
     async function loadData() {
         showLoading(true); hideError();
         try {
             const [t,b,s,a] = await Promise.all([fetchTasks(), fetchBulletins(), fetchStores(), fetchActivityLog()]);
-            const oldTasks = tasks;
-            tasks=t||[]; 
-            bulletins=b||[]; 
-            stores=s||[]; 
-            activityLog=a||[];
             
             // Check for new tasks and send notifications
-            if (oldTasks.length) {
-                const newTasks = tasks.filter(t => !oldTasks.some(ot => (ot.id||ot.taskid) === (t.id||t.taskid)));
+            if (tasks.length > 0 && t.length > tasks.length) {
+                const newTasks = t.filter(task => !tasks.some(ot => (ot.id||ot.taskid) === (task.id||task.taskid)));
                 newTasks.forEach(task => {
                     sendBrowserNotification(
                         '📋 New Task Assigned',
@@ -1048,7 +1044,11 @@
                 });
             }
             
-            loadBulletinsFromStorage();
+            tasks=t||[]; 
+            bulletins=b||[]; 
+            stores=s||[]; 
+            activityLog=a||[];
+            
             loadNotifications();
             
             renderAll();
@@ -1088,22 +1088,10 @@
         const sorted = [...bulletins].reverse();
         sorted.forEach(post=>{
             const id = getBulletinId(post);
-            let date=post.dateposted||post.date||'';
+            let date=post.timestamp||post.dateposted||post.date||'';
             if(date.includes('T')){ const d=new Date(date); d.setHours(d.getHours()+8); date=d.toISOString().replace('T',' ').slice(0,16); }
-            let attachmentHtml = '';
-            if (post.attachment) {
-                const isImage = post.attachment.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
-                if (isImage) {
-                    attachmentHtml = `<div class="note-attachment"><i class="fas fa-image"></i> <a href="${post.attachment}" target="_blank">View Image</a></div>`;
-                } else {
-                    attachmentHtml = `<div class="note-attachment"><i class="fas fa-paperclip"></i> <a href="${post.attachment}" target="_blank">${post.attachment.split('/').pop() || 'Attachment'}</a></div>`;
-                }
-            }
             html+=`<div class="sticky-note">
-                <div>
-                    <div class="note-content">${post.content||''}</div>
-                    ${attachmentHtml}
-                </div>
+                <div class="note-content">${post.content||''}</div>
                 <div class="note-footer">
                     <span class="note-badge">${post.type||'Note'}</span>
                     <span><i class="far fa-clock"></i> ${date||''}</span>
@@ -1295,100 +1283,27 @@
         } catch(e){ showToast('❌ '+e.message, 'error'); } finally { showLoading(false); }
     }
 
-    // ========== BULLETIN CRUD (WITH ATTACHMENTS) ==========
-    let pendingAttachment = null;
-
+    // ========== BULLETIN CRUD (Pure Google Sheets - No Local Storage) ==========
     function showAddBulletin(){ 
         openModal('Add Bulletin', `
             <div class="form-group"><label>Content *</label><textarea id="bulletinContentInput" required></textarea></div>
             <div class="form-group"><label>Type</label><select id="bulletinType"><option>Announcement</option><option>Reminder</option><option selected>Note</option></select></div>
-            <div class="form-group"><label>Attachment</label>
-                <input type="file" id="bulletinAttachment" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleAttachmentPreview(event)">
-                <div id="attachmentPreview"></div>
-            </div>
             <button class="btn btn-primary" onclick="addBulletin()" style="width:100%;"><i class="fas fa-save"></i> Post</button>
         `);
-        pendingAttachment = null;
-        document.getElementById('attachmentPreview').innerHTML = '';
-    }
-
-    function handleAttachmentPreview(event) {
-        const file = event.target.files[0];
-        if (!file) { pendingAttachment = null; document.getElementById('attachmentPreview').innerHTML = ''; return; }
-        
-        // For demo, we'll store the file name and a data URL
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            pendingAttachment = {
-                name: file.name,
-                data: e.target.result,
-                type: file.type
-            };
-            const preview = document.getElementById('attachmentPreview');
-            if (file.type.startsWith('image/')) {
-                preview.innerHTML = `<div class="attachment-preview">
-                    <i class="fas fa-image"></i> ${file.name} 
-                    <img src="${e.target.result}" style="max-height:40px;max-width:60px;border-radius:4px;object-fit:cover;">
-                    <button class="remove-attachment" onclick="removeAttachment()"><i class="fas fa-times"></i></button>
-                </div>`;
-            } else {
-                preview.innerHTML = `<div class="attachment-preview">
-                    <i class="fas fa-paperclip"></i> ${file.name}
-                    <button class="remove-attachment" onclick="removeAttachment()"><i class="fas fa-times"></i></button>
-                </div>`;
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function removeAttachment() {
-        pendingAttachment = null;
-        document.getElementById('attachmentPreview').innerHTML = '';
-        document.getElementById('bulletinAttachment').value = '';
     }
     
     async function addBulletin(){ 
         const content=document.getElementById('bulletinContentInput').value.trim(); 
         if(!content){alert('Enter content');return;} 
-        
-        let attachmentData = null;
-        if (pendingAttachment) {
-            // Store as data URL for demo. In production, you'd upload to a server
-            attachmentData = pendingAttachment.data;
-        }
-        
         try{ 
             showLoading(true); 
-            const result = await addBulletinToSheet(content, document.getElementById('bulletinType').value, attachmentData);
-            const newPost = { 
-                content, 
-                type: document.getElementById('bulletinType').value,
-                dateposted: new Date().toISOString(),
-                attachment: attachmentData,
-                ...result
-            };
-            bulletins.push(newPost);
-            saveBulletinsToStorage();
+            await addBulletinToSheet(content, document.getElementById('bulletinType').value);
             closeModal(); 
-            pendingAttachment = null;
-            renderBulletin();
+            await loadData();
             showToast('✅ Posted', 'success');
             sendBrowserNotification('📌 New Bulletin', content.substring(0, 50) + (content.length > 50 ? '...' : ''));
         } catch(e){ 
-            const newPost = { 
-                content, 
-                type: document.getElementById('bulletinType').value,
-                dateposted: new Date().toISOString(),
-                attachment: attachmentData,
-                _localId: `local_${Date.now()}`,
-                _updated: true
-            };
-            bulletins.push(newPost);
-            saveBulletinsToStorage();
-            closeModal(); 
-            pendingAttachment = null;
-            renderBulletin();
-            showToast('✅ Posted locally (sync pending)', 'success');
+            showToast('❌ ' + e.message, 'error');
         } finally { showLoading(false); }
     }
     
@@ -1396,15 +1311,6 @@
         if(!verifyPassword()) return;
         const post = bulletins.find(b => getBulletinId(b) === id);
         if(!post){ showToast('Post not found', 'error'); return; }
-        let attachmentHtml = '';
-        if (post.attachment) {
-            const isImage = typeof post.attachment === 'string' && post.attachment.match(/^data:image/);
-            if (isImage) {
-                attachmentHtml = `<div class="attachment-preview"><i class="fas fa-image"></i> Has attachment <img src="${post.attachment}" style="max-height:40px;max-width:60px;border-radius:4px;object-fit:cover;"></div>`;
-            } else {
-                attachmentHtml = `<div class="attachment-preview"><i class="fas fa-paperclip"></i> Has attachment</div>`;
-            }
-        }
         openModal('Edit Bulletin', `
             <div class="password-protected"><i class="fas fa-lock"></i> Admin</div>
             <div class="form-group"><label>Content *</label><textarea id="editBulletinContent">${post.content||''}</textarea></div>
@@ -1413,45 +1319,19 @@
                 <option ${(post.type||'Note')==='Reminder'?'selected':''}>Reminder</option>
                 <option ${(post.type||'Note')==='Note'?'selected':''}>Note</option>
             </select></div>
-            <div class="form-group"><label>Attachment</label>
-                <input type="file" id="editBulletinAttachment" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleEditAttachmentPreview(event)">
-                <div id="editAttachmentPreview">${attachmentHtml}</div>
-            </div>
             <button class="btn btn-warning" onclick="updateBulletin('${id}')" style="width:100%;"><i class="fas fa-save"></i> Update</button>
         `);
-        window._editAttachment = post.attachment || null;
-    }
-
-    function handleEditAttachmentPreview(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            window._editAttachment = e.target.result;
-            const preview = document.getElementById('editAttachmentPreview');
-            if (file.type.startsWith('image/')) {
-                preview.innerHTML = `<div class="attachment-preview"><i class="fas fa-image"></i> ${file.name} <img src="${e.target.result}" style="max-height:40px;max-width:60px;border-radius:4px;object-fit:cover;"></div>`;
-            } else {
-                preview.innerHTML = `<div class="attachment-preview"><i class="fas fa-paperclip"></i> ${file.name}</div>`;
-            }
-        };
-        reader.readAsDataURL(file);
     }
     
     async function updateBulletin(id) {
         const content = document.getElementById('editBulletinContent').value.trim();
         const type = document.getElementById('editBulletinType').value;
         if(!content){ alert('Enter content'); return; }
-        const attachment = window._editAttachment || null;
         try {
             showLoading(true);
-            try {
-                await callAPI('updateBulletin', { id, content, type, attachment });
-            } catch(e) {
-                console.warn('Backend update not supported, using local update');
-            }
-            updateBulletinLocal(id, content, type, attachment);
+            await updateBulletinInSheet(id, content, type);
             closeModal();
+            await loadData();
             showToast('✅ Updated', 'success');
         } catch(e){ showToast('❌ '+e.message, 'error'); } 
         finally { showLoading(false); }
@@ -1465,12 +1345,8 @@
     async function deleteBulletin(id) {
         try { 
             showLoading(true);
-            try {
-                await callAPI('deleteBulletin', { id });
-            } catch(e) {
-                console.warn('Backend delete not supported, using local delete');
-            }
-            deleteBulletinLocal(id);
+            await deleteBulletinFromSheet(id);
+            await loadData();
             showToast('✅ Deleted', 'success');
         } catch(e){ showToast('❌ '+e.message, 'error'); } 
         finally { showLoading(false); }
@@ -1521,7 +1397,6 @@
             if(v==='dashboard') renderCharts(); 
             if(v==='admin') switchAdminTab(currentAdminTab);
             if(v==='calendar') renderCalendar();
-            // Close notification panel when navigating
             document.getElementById('notificationPanel').classList.remove('open');
         });
     });
@@ -1529,13 +1404,12 @@
     document.getElementById('modal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 
     // ========== INIT ==========
-    // Request notification permission on load
     setTimeout(requestNotificationPermission, 1000);
 
     loadData();
     setInterval(loadData, 60000);
     
-    console.log('✅ TaskFlow loaded. Features: Attachments, Notifications, Calendar, Task Filter');
+    console.log('✅ TaskFlow loaded. Features: Notifications, Calendar, Task Filter');
 </script>
 </body>
 </html>

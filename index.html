@@ -1,0 +1,2061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Task Tracker</title>
+    
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+        }
+        
+        /* Navigation */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        /* Main container */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        /* Task Management */
+        .task-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #fc8181;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f6ad55;
+            color: white;
+        }
+        
+        /* Table styles */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        th {
+            background: #f7fafc;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        tr:hover {
+            background: #f7fafc;
+        }
+        
+        /* Priority colors */
+        .priority-high {
+            color: #fc8181;
+            font-weight: bold;
+        }
+        
+        .priority-medium {
+            color: #f6ad55;
+            font-weight: bold;
+        }
+        
+        .priority-low {
+            color: #63b3ed;
+            font-weight: bold;
+        }
+        
+        /* Status badges */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .badge-pending {
+            background: #fef3c7;
+            color: #d69e2e;
+        }
+        
+        .badge-inprogress {
+            background: #bee3f8;
+            color: #2b6cb0;
+        }
+        
+        .badge-completed {
+            background: #c6f6d5;
+            color: #276749;
+        }
+        
+        /* Overdue tasks - RED */
+        .overdue {
+            background-color: #fff5f5 !important;
+            border-left: 4px solid #fc8181;
+        }
+        
+        .overdue .due-date {
+            color: #fc8181;
+            font-weight: bold;
+        }
+        
+        /* Progress bar */
+        .progress-container {
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            min-width: 80px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #a0aec0;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        /* Bulletin */
+        .bulletin-item {
+            padding: 0.75rem;
+            border-left: 3px solid #667eea;
+            margin-bottom: 0.5rem;
+            background: #f7fafc;
+            border-radius: 5px;
+        }
+        
+        .bulletin-date {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            margin-top: 0.25rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+            
+            .nav-content {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .nav-links {
+                justify-content: center;
+            }
+            
+            .container {
+                padding: 0 1rem;
+                margin: 1rem auto;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-title {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            table {
+                font-size: 0.8rem;
+            }
+            
+            th, td {
+                padding: 0.4rem;
+            }
+        }
+        
+        /* View switching */
+        .view {
+            display: none;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        /* Store selector */
+        .store-selector {
+            margin-bottom: 1.5rem;
+        }
+        
+        .store-selector select {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 1rem;
+            min-width: 200px;
+        }
+        
+        /* Loading spinner */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Password protected */
+        .password-protected {
+            border-left: 3px solid #fc8181;
+            background: #fff5f5;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #a0aec0;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Error message */
+        .error-message {
+            background: #fff5f5;
+            border: 1px solid #fc8181;
+            color: #c53030;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+        
+        .success-message {
+            background: #f0fff4;
+            border: 1px solid #48bb78;
+            color: #276749;
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+
+        /* NEW STYLES FOR ADMIN FEATURES */
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+        
+        .tab-btn:hover {
+            border-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .log-entry {
+            padding: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+        
+        .log-entry .log-time {
+            color: #a0aec0;
+            font-size: 0.8rem;
+        }
+        
+        .log-entry .log-action {
+            font-weight: 600;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                <i class="fas fa-tasks"></i> Team Task Tracker
+            </div>
+            <div class="nav-links">
+                <button class="nav-btn active" data-view="dashboard">
+                    <i class="fas fa-chart-pie"></i> Dashboard
+                </button>
+                <button class="nav-btn" data-view="tasks">
+                    <i class="fas fa-list"></i> Tasks
+                </button>
+                <button class="nav-btn" data-view="manager">
+                    <i class="fas fa-user-cog"></i> Manager
+                </button>
+                <button class="nav-btn" data-view="store">
+                    <i class="fas fa-store"></i> Store View
+                </button>
+                <button class="nav-btn" data-view="admin">
+                    <i class="fas fa-cog"></i> Admin
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Loading -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading tasks from Google Sheet...</p>
+        </div>
+
+        <!-- Error Display -->
+        <div id="errorDisplay" class="error-message" style="display: none;"></div>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="view active">
+            <div class="dashboard-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTasks">0</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+                <div class="stat-card" style="border-left-color: #48bb78;">
+                    <div class="stat-number" id="completedTasks">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-card" style="border-left-color: #fc8181;">
+                    <div class="stat-number" id="overdueTasks">0</div>
+                    <div class="stat-label">Overdue</div>
+                </div>
+                <div class="stat-card" style="border-left-color: #f6ad55;">
+                    <div class="stat-number" id="inProgressTasks">0</div>
+                    <div class="stat-label">In Progress</div>
+                </div>
+                <div class="stat-card" style="border-left-color: #48bb78;">
+                    <div class="stat-number" id="totalStores">0</div>
+                    <div class="stat-label">Total Stores</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span><i class="fas fa-chart-bar"></i> Analytics Overview</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                    <div>
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span><i class="fas fa-bullhorn"></i> Bulletin Board</span>
+                    <button class="btn btn-primary" onclick="showAddBulletin()">
+                        <i class="fas fa-plus"></i> Add Post
+                    </button>
+                </div>
+                <div id="bulletinContent">
+                    <div class="empty-state">
+                        <i class="fas fa-bullhorn"></i>
+                        <p>No bulletin posts yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity on Dashboard -->
+            <div class="card">
+                <div class="card-title">
+                    <span><i class="fas fa-clock"></i> Recent Activity</span>
+                </div>
+                <div id="recentActivity">
+                    <div class="empty-state">
+                        <i class="fas fa-clock"></i>
+                        <p>No recent activity</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TASKS VIEW (All tasks) -->
+        <div id="view-tasks" class="view">
+            <div class="card">
+                <div class="card-title">
+                    <span><i class="fas fa-tasks"></i> All Tasks</span>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <input type="text" id="searchInput" placeholder="Search tasks..." style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 5px;">
+                        <button class="btn btn-primary" onclick="filterTasks()"><i class="fas fa-search"></i> Search</button>
+                        <button class="btn btn-warning" onclick="clearFilter()"><i class="fas fa-times"></i> Clear</button>
+                    </div>
+                </div>
+                <div id="allTasksContainer">
+                    <div class="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <p>No tasks found</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MANAGER VIEW -->
+        <div id="view-manager" class="view">
+            <div class="card">
+                <div class="card-title">
+                    <span><i class="fas fa-user-cog"></i> Manager Controls</span>
+                    <button class="btn btn-primary" onclick="showAddTask()">
+                        <i class="fas fa-plus"></i> Add Task
+                    </button>
+                </div>
+                <div id="managerTasksContainer">
+                    <div class="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <p>No tasks available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STORE VIEW -->
+        <div id="view-store" class="view">
+            <div class="card">
+                <div class="card-title">
+                    <span><i class="fas fa-store"></i> Store Tasks</span>
+                </div>
+                <div class="store-selector">
+                    <label>Select Store: </label>
+                    <select id="storeSelector" onchange="loadStoreTasks()">
+                        <option value="">All Stores</option>
+                    </select>
+                </div>
+                <div id="storeTasksContainer">
+                    <div class="empty-state">
+                        <i class="fas fa-store"></i>
+                        <p>Select a store to view tasks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN VIEW -->
+        <div id="view-admin" class="view">
+            <div class="card">
+                <div class="card-title">
+                    <span><i class="fas fa-cog"></i> Admin Panel</span>
+                </div>
+                
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchAdminTab('stores')">
+                        <i class="fas fa-store"></i> Stores
+                    </button>
+                    <button class="tab-btn" onclick="switchAdminTab('activity')">
+                        <i class="fas fa-history"></i> Activity Log
+                    </button>
+                </div>
+                
+                <!-- Stores Tab -->
+                <div id="admin-stores" class="tab-content active">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <h4>Manage Stores</h4>
+                        <button class="btn btn-primary" onclick="showAddStore()">
+                            <i class="fas fa-plus"></i> Add Store
+                        </button>
+                    </div>
+                    <div id="storesContainer">
+                        <div class="empty-state">
+                            <i class="fas fa-store"></i>
+                            <p>No stores configured</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Activity Log Tab -->
+                <div id="admin-activity" class="tab-content">
+                    <h4>Activity Log</h4>
+                    <div id="activityLogContainer">
+                        <div class="empty-state">
+                            <i class="fas fa-history"></i>
+                            <p>No activity logged yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Task</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // CONFIGURATION
+        // ========================================
+        const CONFIG = {
+            API_URL: 'https://script.google.com/macros/s/AKfycbx9n4ZMpquNsIj0xYpx3scQDihzGa7zibbrZiVWanSS8dD1fVL_FRdnmnYKiduWhY3m/exec',
+            ADMIN_PASSWORD: 'admin123',
+        };
+
+        // ========================================
+        // STATE MANAGEMENT
+        // ========================================
+        let tasks = [];
+        let bulletins = [];
+        let stores = [];
+        let activityLog = [];
+        let charts = {};
+        let searchTerm = '';
+        let filteredTasks = [];
+        let currentAdminTab = 'stores';
+
+        // ========================================
+        // API FUNCTIONS
+        // ========================================
+// Helper function to format date to Philippine Time
+function formatToPHT(dateValue) {
+    if (!dateValue) return '';
+    
+    // If it's a timestamp with 'Z' (UTC)
+    if (typeof dateValue === 'string' && dateValue.includes('T')) {
+        // Convert to Date object (it will be in UTC)
+        const date = new Date(dateValue);
+        // Add 8 hours for Philippine Time (UTC+8)
+        date.setHours(date.getHours() + 8);
+        
+        // Format as YYYY-MM-DD HH:mm:ss
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+    
+    return dateValue;
+}
+
+// For just date (without time)
+function formatToPHTDate(dateValue) {
+    if (!dateValue) return '';
+    
+    if (typeof dateValue === 'string' && dateValue.includes('T')) {
+        const date = new Date(dateValue);
+        date.setHours(date.getHours() + 8);
+        
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}`;
+    }
+    
+    return dateValue;
+}
+
+// Helper function to format date from Google Sheets
+function formatDate(dateValue) {
+    if (!dateValue) return '';
+    
+    // If it's already a string in YYYY-MM-DD format
+    if (typeof dateValue === 'string' && dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return dateValue;
+    }
+    
+    // If it's a full timestamp like 2026-08-04T16:00:00.000Z
+    if (typeof dateValue === 'string' && dateValue.includes('T')) {
+        return dateValue.split('T')[0];
+    }
+    
+    // If it's a Date object
+    if (dateValue instanceof Date) {
+        return dateValue.toISOString().split('T')[0];
+    }
+    
+    // If it's a number (timestamp)
+    if (typeof dateValue === 'number') {
+        return new Date(dateValue).toISOString().split('T')[0];
+    }
+    
+    return dateValue;
+}
+
+
+
+        async function callAPI(action, data = {}) {
+            try {
+                const params = new URLSearchParams({ action, ...data });
+                const url = `${CONFIG.API_URL}?${params.toString()}`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        async function fetchTasks() {
+            try {
+                return await callAPI('getTasks') || [];
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+                throw error;
+            }
+        }
+
+        async function fetchBulletins() {
+            try {
+                return await callAPI('getBulletins') || [];
+            } catch (error) {
+                console.error('Error fetching bulletins:', error);
+                return [];
+            }
+        }
+
+        async function fetchStores() {
+            try {
+                return await callAPI('getStores') || [];
+            } catch (error) {
+                console.error('Error fetching stores:', error);
+                return [];
+            }
+        }
+
+        async function fetchActivityLog() {
+            try {
+                return await callAPI('getActivityLog') || [];
+            } catch (error) {
+                console.error('Error fetching activity log:', error);
+                return [];
+            }
+        }
+
+        async function addTaskToSheet(taskData) {
+            try {
+                return await callAPI('addTask', taskData);
+            } catch (error) {
+                console.error('Error adding task:', error);
+                throw error;
+            }
+        }
+
+        async function updateTaskInSheet(taskId, taskData) {
+            try {
+                return await callAPI('updateTask', { id: taskId, ...taskData });
+            } catch (error) {
+                console.error('Error updating task:', error);
+                throw error;
+            }
+        }
+
+        async function deleteTaskFromSheet(taskId) {
+            try {
+                return await callAPI('deleteTask', { id: taskId });
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                throw error;
+            }
+        }
+
+        async function addBulletinToSheet(content, type) {
+            try {
+                return await callAPI('addBulletin', { content, type });
+            } catch (error) {
+                console.error('Error adding bulletin:', error);
+                throw error;
+            }
+        }
+
+        async function addStoreToSheet(storeData) {
+            try {
+                return await callAPI('addStore', storeData);
+            } catch (error) {
+                console.error('Error adding store:', error);
+                throw error;
+            }
+        }
+
+        async function updateStoreInSheet(storeId, storeData) {
+            try {
+                return await callAPI('updateStore', { id: storeId, ...storeData });
+            } catch (error) {
+                console.error('Error updating store:', error);
+                throw error;
+            }
+        }
+
+        async function deleteStoreFromSheet(storeId) {
+            try {
+                return await callAPI('deleteStore', { id: storeId });
+            } catch (error) {
+                console.error('Error deleting store:', error);
+                throw error;
+            }
+        }
+
+        // ========================================
+        // LOAD DATA
+        // ========================================
+        async function loadData() {
+            showLoading(true);
+            hideError();
+            
+            try {
+                const [tasksData, bulletinsData, storesData, activityData] = await Promise.all([
+                    fetchTasks(),
+                    fetchBulletins(),
+                    fetchStores(),
+                    fetchActivityLog()
+                ]);
+                
+                tasks = tasksData || [];
+                bulletins = bulletinsData || [];
+                stores = storesData || [];
+                activityLog = activityData || [];
+                
+                renderAll();
+                
+                console.log(`✅ Loaded: ${tasks.length} tasks, ${bulletins.length} bulletins, ${stores.length} stores`);
+            } catch (error) {
+                showError('Failed to load data from Google Sheets. Please check your API URL and try again.');
+                console.error('Load error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ========================================
+        // RENDER FUNCTIONS
+        // ========================================
+        function renderAll() {
+            renderDashboard();
+            renderAllTasks();
+            renderManagerTasks();
+            renderStoreSelector();
+            renderBulletin();
+            renderStores();
+            renderActivityLog();
+            renderRecentActivity();
+        }
+
+   function renderDashboard() {
+    const total = tasks.length;
+    const completed = tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length;
+    const today = new Date().toISOString().split('T')[0];
+    const overdue = tasks.filter(t => {
+        const dueDate = formatDate(t.duedate);
+        return dueDate && dueDate < today && t.status && t.status.toLowerCase() !== 'completed';
+    }).length;
+    const inProgress = tasks.filter(t => t.status && t.status.toLowerCase() === 'in progress').length;
+    
+    document.getElementById('totalTasks').textContent = total;
+    document.getElementById('completedTasks').textContent = completed;
+    document.getElementById('overdueTasks').textContent = overdue;
+    document.getElementById('inProgressTasks').textContent = inProgress;
+    document.getElementById('totalStores').textContent = stores.length;
+    
+    renderCharts();
+}
+        function renderCharts() {
+            const priorityData = {
+                High: tasks.filter(t => t.priority && t.priority.toLowerCase() === 'high').length,
+                Medium: tasks.filter(t => t.priority && t.priority.toLowerCase() === 'medium').length,
+                Low: tasks.filter(t => t.priority && t.priority.toLowerCase() === 'low').length
+            };
+            
+            const priorityCtx = document.getElementById('priorityChart');
+            if (charts.priority) charts.priority.destroy();
+            
+            if (priorityCtx) {
+                charts.priority = new Chart(priorityCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['High', 'Medium', 'Low'],
+                        datasets: [{
+                            data: [priorityData.High, priorityData.Medium, priorityData.Low],
+                            backgroundColor: ['#fc8181', '#f6ad55', '#63b3ed']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            title: { display: true, text: 'Tasks by Priority' }
+                        }
+                    }
+                });
+            }
+            
+            const statusData = {
+                Pending: tasks.filter(t => t.status && t.status.toLowerCase() === 'pending').length,
+                'In Progress': tasks.filter(t => t.status && t.status.toLowerCase() === 'in progress').length,
+                Completed: tasks.filter(t => t.status && t.status.toLowerCase() === 'completed').length
+            };
+            
+            const statusCtx = document.getElementById('statusChart');
+            if (charts.status) charts.status.destroy();
+            
+            if (statusCtx) {
+                charts.status = new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pending', 'In Progress', 'Completed'],
+                        datasets: [{
+                            data: [statusData.Pending, statusData['In Progress'], statusData.Completed],
+                            backgroundColor: ['#f6ad55', '#63b3ed', '#48bb78']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            title: { display: true, text: 'Tasks by Status' }
+                        }
+                    }
+                });
+            }
+        }
+
+      function renderAllTasks() {
+    const container = document.getElementById('allTasksContainer');
+    const displayTasks = searchTerm ? filteredTasks : tasks;
+    
+    if (!displayTasks || displayTasks.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-tasks"></i>
+                <p>${searchTerm ? 'No tasks match your search' : 'No tasks found'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div class="table-container"><table><thead><tr>';
+    html += '<th>Title</th><th>Store</th><th>Assigned To</th><th>Priority</th><th>Due Date</th><th>Status</th><th>Progress</th>';
+    html += '</tr></thead><tbody>';
+    
+    displayTasks.forEach(task => {
+        const dueDate = formatDate(task.duedate);
+        const today = new Date().toISOString().split('T')[0];
+        const isOverdue = dueDate && dueDate < today && 
+                         task.status && task.status.toLowerCase() !== 'completed';
+        html += `<tr class="${isOverdue ? 'overdue' : ''}">`;
+        html += `<td>${task.title || ''}</td>`;
+        html += `<td>${task.store || ''}</td>`;
+        html += `<td>${task.assignedto || task.assignedTo || ''}</td>`;
+        html += `<td class="priority-${(task.priority || '').toLowerCase()}">${task.priority || ''}</td>`;
+        html += `<td class="${isOverdue ? 'due-date' : ''}">${dueDate || ''}</td>`;
+        html += `<td><span class="badge badge-${(task.status || 'pending').toLowerCase().replace(' ', '-')}">${task.status || 'Pending'}</span></td>`;
+        html += `<td>
+            <div class="progress-container">
+                <div class="progress-bar" style="width: ${task.progress || 0}%; background: ${(task.progress || 0) === 100 ? '#48bb78' : '#667eea'}"></div>
+            </div>
+            <span style="font-size: 0.8rem;">${task.progress || 0}%</span>
+        </td>`;
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+
+ function renderManagerTasks() {
+    const container = document.getElementById('managerTasksContainer');
+    
+    if (!tasks || tasks.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-tasks"></i>
+                <p>No tasks available</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div class="table-container"><table><thead><tr>';
+    html += '<th>Title</th><th>Store</th><th>Assigned To</th><th>Priority</th><th>Due Date</th><th>Status</th><th>Progress</th>';
+    html += '<th>Actions</th>';
+    html += '</tr></thead><tbody>';
+    
+    tasks.forEach(task => {
+        const taskId = task.id || task.taskid || task.taskId || task.ID || task['Task ID'];
+        const dueDate = formatDate(task.duedate);
+        const today = new Date().toISOString().split('T')[0];
+        const isOverdue = dueDate && dueDate < today && 
+                         task.status && task.status.toLowerCase() !== 'completed';
+        html += `<tr class="${isOverdue ? 'overdue' : ''}">`;
+        html += `<td>${task.title || ''}</td>`;
+        html += `<td>${task.store || ''}</td>`;
+        html += `<td>${task.assignedto || task.assignedTo || ''}</td>`;
+        html += `<td class="priority-${(task.priority || '').toLowerCase()}">${task.priority || ''}</td>`;
+        html += `<td class="${isOverdue ? 'due-date' : ''}">${dueDate || ''}</td>`;
+        html += `<td><span class="badge badge-${(task.status || 'pending').toLowerCase().replace(' ', '-')}">${task.status || 'Pending'}</span></td>`;
+        html += `<td>
+            <div class="progress-container">
+                <div class="progress-bar" style="width: ${task.progress || 0}%; background: ${(task.progress || 0) === 100 ? '#48bb78' : '#667eea'}"></div>
+            </div>
+            <span style="font-size: 0.8rem;">${task.progress || 0}%</span>
+        </td>`;
+        html += `<td>
+            <button class="btn btn-warning" onclick="showEditTask('${taskId}')" style="padding: 0.25rem 0.5rem; margin-right: 0.25rem;">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-danger" onclick="showDeleteTask('${taskId}')" style="padding: 0.25rem 0.5rem;">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </td>`;
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+
+
+        function renderStoreSelector() {
+            const select = document.getElementById('storeSelector');
+            select.innerHTML = '<option value="">All Stores</option>';
+            stores.forEach(store => {
+                select.innerHTML += `<option value="${store.name}">${store.name}</option>`;
+            });
+        }
+
+    function renderStoreTasks() {
+    const container = document.getElementById('storeTasksContainer');
+    const selectedStore = document.getElementById('storeSelector').value;
+    let displayTasks = tasks;
+    
+    if (selectedStore) {
+        displayTasks = tasks.filter(t => t.store === selectedStore);
+    }
+    
+    if (!displayTasks || displayTasks.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-store"></i>
+                <p>${selectedStore ? 'No tasks for this store' : 'Select a store to view tasks'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div class="table-container"><table><thead><tr>';
+    html += '<th>Title</th><th>Assigned To</th><th>Priority</th><th>Due Date</th><th>Status</th><th>Progress</th>';
+    html += '<th>Remarks</th>';
+    html += '<th>Update</th>';
+    html += '</tr></thead><tbody>';
+    
+    displayTasks.forEach(task => {
+        const taskId = task.id || task.taskid || task.taskId || task.ID || task['Task ID'];
+        const dueDate = formatDate(task.duedate);
+        const today = new Date().toISOString().split('T')[0];
+        const isOverdue = dueDate && dueDate < today && 
+                         task.status && task.status.toLowerCase() !== 'completed';
+        html += `<tr class="${isOverdue ? 'overdue' : ''}">`;
+        html += `<td>${task.title || ''}</td>`;
+        html += `<td>${task.assignedto || task.assignedTo || ''}</td>`;
+        html += `<td class="priority-${(task.priority || '').toLowerCase()}">${task.priority || ''}</td>`;
+        html += `<td class="${isOverdue ? 'due-date' : ''}">${dueDate || ''}</td>`;
+        html += `<td><span class="badge badge-${(task.status || 'pending').toLowerCase().replace(' ', '-')}">${task.status || 'Pending'}</span></td>`;
+        html += `<td>
+            <div class="progress-container">
+                <div class="progress-bar" style="width: ${task.progress || 0}%; background: ${(task.progress || 0) === 100 ? '#48bb78' : '#667eea'}"></div>
+            </div>
+            <span style="font-size: 0.8rem;">${task.progress || 0}%</span>
+        </td>`;
+        html += `<td>${task.remarks || '-'}</td>`;
+        html += `<td>
+            <button class="btn btn-primary" onclick="showUpdateTask('${taskId}')" style="padding: 0.25rem 0.5rem;">
+                <i class="fas fa-pen"></i> Update
+            </button>
+        </td>`;
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+
+  function renderBulletin() {
+    const container = document.getElementById('bulletinContent');
+    
+    if (!bulletins || bulletins.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-bullhorn"></i>
+                <p>No bulletin posts yet</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    bulletins.forEach(post => {
+        // Format the date to Philippine Time
+        let date = post.dateposted || post.date || '';
+        if (date) {
+            // If it has 'T', convert to PHT
+            if (date.includes('T')) {
+                const d = new Date(date);
+                d.setHours(d.getHours() + 8);
+                date = d.toISOString().replace('T', ' ').slice(0, 16);
+            }
+        }
+        
+        html += `<div class="bulletin-item">
+            <div>${post.content || ''}</div>
+            <div class="bulletin-date">
+                <i class="far fa-calendar-alt"></i> ${date || ''} 
+                <span class="badge" style="background: #e2e8f0;">${post.type || 'Note'}</span>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+        // ========================================
+        // STORES CRUD
+        // ========================================
+    function renderStores() {
+    const container = document.getElementById('storesContainer');
+    if (!stores || stores.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-store"></i><p>No stores configured</p></div>`;
+        return;
+    }
+    
+    let html = '<div class="table-container"><table><thead><tr>';
+    html += '<th>Store Name</th><th>Actions</th>';
+    html += '</tr></thead><tbody>';
+    
+    stores.forEach(store => {
+        html += `<tr>`;
+        html += `<td><strong>${store.name || ''}</strong></td>`;
+        html += `<td>
+            <button class="btn btn-warning" onclick="showEditStore('${store.storeid}')" style="padding: 0.25rem 0.5rem; margin-right: 0.25rem;">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-danger" onclick="showDeleteStore('${store.storeid}')" style="padding: 0.25rem 0.5rem;">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>`;
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+
+   function showAddStore() {
+    if (!verifyPassword()) return;
+    
+    const modal = document.getElementById('modal');
+    document.getElementById('modalTitle').textContent = 'Add Store';
+    
+    let html = `
+        <div class="password-protected"><i class="fas fa-lock"></i> Admin action - Password required</div>
+        <div class="form-group">
+            <label>Store Name *</label>
+            <input type="text" id="storeName" required placeholder="Enter store name">
+        </div>
+        <button class="btn btn-primary" onclick="addStore()" style="width: 100%;">
+            <i class="fas fa-save"></i> Add Store
+        </button>
+    `;
+    
+    document.getElementById('modalBody').innerHTML = html;
+    modal.classList.add('active');
+}
+
+       async function addStore() {
+    const name = document.getElementById('storeName').value.trim();
+    
+    if (!name) {
+        alert('Please enter store name');
+        return;
+    }
+    
+    try {
+        showLoading(true);
+        await addStoreToSheet({ name, createdBy: 'Admin' });
+        closeModal();
+        await loadData();
+        alert('✅ Store added successfully!');
+    } catch (error) {
+        alert('❌ Failed to add store: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+     function showEditStore(storeId) {
+    if (!verifyPassword()) return;
+    
+    const store = stores.find(s => s.storeid === storeId);
+    if (!store) {
+        alert('Store not found');
+        return;
+    }
+    
+    const modal = document.getElementById('modal');
+    document.getElementById('modalTitle').textContent = 'Edit Store';
+    
+    let html = `
+        <div class="password-protected"><i class="fas fa-lock"></i> Admin action - Password required</div>
+        <div class="form-group">
+            <label>Store Name *</label>
+            <input type="text" id="editStoreName" value="${store.name || ''}" required>
+        </div>
+        <button class="btn btn-warning" onclick="updateStore('${storeId}')" style="width: 100%;">
+            <i class="fas fa-save"></i> Update Store
+        </button>
+    `;
+    
+    document.getElementById('modalBody').innerHTML = html;
+    modal.classList.add('active');
+}
+       async function updateStore(storeId) {
+    const name = document.getElementById('editStoreName').value.trim();
+    
+    if (!name) {
+        alert('Please enter store name');
+        return;
+    }
+    
+    try {
+        showLoading(true);
+        await updateStoreInSheet(storeId, { name });
+        closeModal();
+        await loadData();
+        alert('✅ Store updated successfully!');
+    } catch (error) {
+        alert('❌ Failed to update store: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+        function showDeleteStore(storeId) {
+            if (!verifyPassword()) return;
+            
+            if (confirm('⚠️ Are you sure you want to delete this store? This cannot be undone.')) {
+                deleteStore(storeId);
+            }
+        }
+
+        async function deleteStore(storeId) {
+            try {
+                showLoading(true);
+                await deleteStoreFromSheet(storeId);
+                await loadData();
+                alert('✅ Store deleted successfully!');
+            } catch (error) {
+                alert('❌ Failed to delete store: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ========================================
+        // ACTIVITY LOG
+        // ========================================
+function renderActivityLog() {
+    const container = document.getElementById('activityLogContainer');
+    if (!activityLog || activityLog.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><p>No activity logged yet</p></div>`;
+        return;
+    }
+    
+    let html = '';
+    activityLog.slice(0, 50).forEach(log => {
+        // Format timestamp to Philippine Time
+        let timestamp = log.timestamp || '';
+        if (timestamp && timestamp.includes('T')) {
+            const d = new Date(timestamp);
+            d.setHours(d.getHours() + 8);
+            timestamp = d.toISOString().replace('T', ' ').slice(0, 19);
+        }
+        
+        html += `<div class="log-entry">
+            <div>
+                <span class="log-action">${log.action || ''}</span>
+                ${log.details || ''}
+            </div>
+            <div class="log-time">
+                <i class="far fa-clock"></i> ${timestamp || ''} 
+                <span style="color: #667eea;">by ${log.user || 'System'}</span>
+                ${log.taskid ? `<span style="color: #a0aec0;">Task: ${log.taskid}</span>` : ''}
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function renderRecentActivity() {
+    const container = document.getElementById('recentActivity');
+    const recent = activityLog.slice(0, 10);
+    
+    if (!recent || recent.length === 0) {
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-clock"></i><p>No recent activity</p></div>`;
+        return;
+    }
+    
+    let html = '';
+    recent.forEach(log => {
+        // Format timestamp to Philippine Time
+        let timestamp = log.timestamp || '';
+        if (timestamp && timestamp.includes('T')) {
+            const d = new Date(timestamp);
+            d.setHours(d.getHours() + 8);
+            timestamp = d.toISOString().replace('T', ' ').slice(0, 19);
+        }
+        
+        html += `<div class="log-entry">
+            <div>
+                <span class="log-action">${log.action || ''}</span>
+                ${log.details || ''}
+            </div>
+            <div class="log-time">
+                <i class="far fa-clock"></i> ${timestamp || ''} 
+                by ${log.user || 'System'}
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+        // ========================================
+        // TASK OPERATIONS
+        // ========================================
+        function showAddTask() {
+            if (!verifyPassword()) return;
+            
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').textContent = 'Add New Task';
+            
+            const storeOptions = stores.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+            
+            let html = `
+                <div class="password-protected">
+                    <i class="fas fa-lock"></i> Admin action - Password required
+                </div>
+                <div class="form-group">
+                    <label>Task Title *</label>
+                    <input type="text" id="taskTitle" required placeholder="Enter task title">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="taskDescription" placeholder="Enter task description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Store *</label>
+                    <select id="taskStore">
+                        ${storeOptions || '<option value="">No stores available</option>'}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Assigned To *</label>
+                    <input type="text" id="taskAssigned" placeholder="Team member name">
+                </div>
+                <div class="form-group">
+                    <label>Priority *</label>
+                    <select id="taskPriority">
+                        <option value="High">High</option>
+                        <option value="Medium" selected>Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Due Date *</label>
+                    <input type="date" id="taskDueDate">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="taskStatus">
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Progress (%)</label>
+                    <input type="number" id="taskProgress" value="0" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Remarks</label>
+                    <input type="text" id="taskRemarks" placeholder="Additional notes">
+                </div>
+                <button class="btn btn-primary" onclick="addTask()" style="width: 100%;">
+                    <i class="fas fa-save"></i> Create Task
+                </button>
+            `;
+            
+            document.getElementById('modalBody').innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        async function addTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDescription').value.trim();
+            const store = document.getElementById('taskStore').value;
+            const assignedTo = document.getElementById('taskAssigned').value.trim();
+            const priority = document.getElementById('taskPriority').value;
+            const dueDate = document.getElementById('taskDueDate').value;
+            const status = document.getElementById('taskStatus').value;
+            const progress = parseInt(document.getElementById('taskProgress').value) || 0;
+            const remarks = document.getElementById('taskRemarks').value.trim();
+            
+            if (!title || !store || !assignedTo || !dueDate) {
+                alert('Please fill in all required fields (*)');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                const taskData = {
+                    title,
+                    description,
+                    store,
+                    assignedTo,
+                    priority,
+                    dueDate,
+                    status,
+                    progress,
+                    remarks,
+                    createdBy: 'Admin'
+                };
+                
+                await addTaskToSheet(taskData);
+                closeModal();
+                await loadData();
+                alert('✅ Task added successfully!');
+            } catch (error) {
+                alert('❌ Failed to add task: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+function showEditTask(taskId) {
+    if (!verifyPassword()) return;
+    
+    const task = tasks.find(t => {
+        return t.id === taskId || 
+               t.taskid === taskId || 
+               t.taskId === taskId ||
+               t.ID === taskId ||
+               t['Task ID'] === taskId;
+    });
+    
+    if (!task) {
+        alert('Task not found. Please refresh and try again.');
+        console.error('Task not found. Available tasks:', tasks);
+        return;
+    }
+    
+    const modal = document.getElementById('modal');
+    document.getElementById('modalTitle').textContent = 'Edit Task Details';
+    
+    const storeOptions = stores.map(s => 
+        `<option value="${s.name}" ${s.name === task.store ? 'selected' : ''}>${s.name}</option>`
+    ).join('');
+    
+    // Format the due date properly for the input field
+    let dueDateValue = '';
+    if (task.duedate) {
+        // If it has 'T', extract just the date part
+        if (task.duedate.includes('T')) {
+            dueDateValue = task.duedate.split('T')[0];
+        } else {
+            dueDateValue = task.duedate;
+        }
+    }
+    
+    let html = `
+        <div class="password-protected">
+            <i class="fas fa-lock"></i> Admin action - Password required
+        </div>
+        <div class="form-group">
+            <label>Task Title *</label>
+            <input type="text" id="editTaskTitle" value="${task.title || ''}" required>
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea id="editTaskDescription">${task.description || ''}</textarea>
+        </div>
+        <div class="form-group">
+            <label>Store *</label>
+            <select id="editTaskStore">
+                ${storeOptions}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Assigned To *</label>
+            <input type="text" id="editTaskAssigned" value="${task.assignedto || task.assignedTo || ''}">
+        </div>
+        <div class="form-group">
+            <label>Priority *</label>
+            <select id="editTaskPriority">
+                ${['High', 'Medium', 'Low'].map(p => 
+                    `<option value="${p}" ${p === task.priority ? 'selected' : ''}>${p}</option>`
+                ).join('')}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Due Date *</label>
+            <input type="date" id="editTaskDueDate" value="${dueDateValue}">
+        </div>
+        <div class="form-group">
+            <label>Remarks</label>
+            <input type="text" id="editTaskRemarks" value="${task.remarks || ''}">
+        </div>
+        <div style="background: #f7fafc; padding: 0.75rem; border-radius: 5px; margin-bottom: 1rem;">
+            <p style="margin: 0; color: #4a5568; font-size: 0.9rem;">
+                <strong>Current Status:</strong> ${task.status || 'Pending'} | 
+                <strong>Progress:</strong> ${task.progress || 0}%
+            </p>
+            <p style="margin: 0.25rem 0 0 0; color: #a0aec0; font-size: 0.8rem;">
+                <i class="fas fa-info-circle"></i> Status and progress can only be updated from Store View
+            </p>
+        </div>
+        <button class="btn btn-warning" onclick="updateTask('${taskId}')" style="width: 100%;">
+            <i class="fas fa-save"></i> Update Task
+        </button>
+    `;
+    
+    document.getElementById('modalBody').innerHTML = html;
+    modal.classList.add('active');
+}
+
+       async function updateTask(taskId) {
+    const task = tasks.find(t => {
+        return t.id === taskId || 
+               t.taskid === taskId || 
+               t.taskId === taskId ||
+               t.ID === taskId ||
+               t['Task ID'] === taskId;
+    });
+    
+    if (!task) {
+        alert('Task not found. Please refresh the page and try again.');
+        return;
+    }
+    
+    const title = document.getElementById('editTaskTitle').value.trim();
+    const description = document.getElementById('editTaskDescription').value.trim();
+    const store = document.getElementById('editTaskStore').value;
+    const assignedTo = document.getElementById('editTaskAssigned').value.trim();
+    const priority = document.getElementById('editTaskPriority').value;
+    const dueDate = document.getElementById('editTaskDueDate').value;
+    const remarks = document.getElementById('editTaskRemarks').value.trim();
+    
+    if (!title || !store || !assignedTo || !dueDate) {
+        alert('Please fill in all required fields (*)');
+        return;
+    }
+    
+    const actualTaskId = task.id || task.taskid || task.taskId || task.ID || task['Task ID'];
+    
+    try {
+        showLoading(true);
+        const taskData = {
+            title,
+            description,
+            store,
+            assignedTo,
+            priority,
+            dueDate,
+            status: task.status || 'Pending', // Keep existing status
+            progress: task.progress || 0, // Keep existing progress
+            remarks,
+            updatedBy: 'Admin'
+        };
+        
+        await updateTaskInSheet(actualTaskId, taskData);
+        closeModal();
+        await loadData();
+        alert('✅ Task details updated successfully!');
+    } catch (error) {
+        alert('❌ Failed to update task: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+        function showDeleteTask(taskId) {
+            if (!verifyPassword()) return;
+            
+            const task = tasks.find(t => {
+                return t.id === taskId || 
+                       t.taskid === taskId || 
+                       t.taskId === taskId ||
+                       t.ID === taskId ||
+                       t['Task ID'] === taskId;
+            });
+            
+            if (!task) {
+                alert('Task not found. Please refresh and try again.');
+                return;
+            }
+            
+            const actualTaskId = task.id || task.taskid || task.taskId || task.ID || task['Task ID'];
+            
+            if (confirm('⚠️ Are you sure you want to delete this task? This cannot be undone.')) {
+                deleteTask(actualTaskId);
+            }
+        }
+
+        async function deleteTask(taskId) {
+            try {
+                showLoading(true);
+                await deleteTaskFromSheet(taskId);
+                await loadData();
+                alert('✅ Task deleted successfully!');
+            } catch (error) {
+                alert('❌ Failed to delete task: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ========================================
+        // STORE VIEW - UPDATE TASK (FIXED)
+        // ========================================
+        function showUpdateTask(taskId) {
+            console.log('Looking for task with ID:', taskId);
+            console.log('All tasks:', tasks);
+            
+            const task = tasks.find(t => {
+                return t.id === taskId || 
+                       t.taskid === taskId || 
+                       t.taskId === taskId ||
+                       t.ID === taskId ||
+                       t['Task ID'] === taskId;
+            });
+            
+            if (!task) {
+                alert('Task not found. Please refresh and try again.');
+                console.error('Task not found. Available tasks:', tasks);
+                return;
+            }
+            
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').textContent = 'Update Task Progress';
+            
+            let html = `
+                <div class="form-group">
+                    <label>Task: <strong>${task.title || ''}</strong></label>
+                    <p style="color: #666; font-size: 0.9rem;">Store: ${task.store || ''} | Assigned: ${task.assignedto || task.assignedTo || ''}</p>
+                    <p style="color: #999; font-size: 0.8rem;">Task ID: ${task.id || task.taskid || task['Task ID'] || ''}</p>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="updateTaskStatus">
+                        ${['Pending', 'In Progress', 'Completed'].map(s => 
+                            `<option value="${s}" ${s === task.status ? 'selected' : ''}>${s}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Progress (%)</label>
+                    <input type="number" id="updateTaskProgress" value="${task.progress || 0}" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Remarks</label>
+                    <input type="text" id="updateTaskRemarks" value="${task.remarks || ''}" placeholder="Update notes">
+                </div>
+                <button class="btn btn-success" onclick="updateTaskProgress('${taskId}')" style="width: 100%;">
+                    <i class="fas fa-check"></i> Update Progress
+                </button>
+            `;
+            
+            document.getElementById('modalBody').innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        async function updateTaskProgress(taskId) {
+            const task = tasks.find(t => {
+                return t.id === taskId || 
+                       t.taskid === taskId || 
+                       t.taskId === taskId ||
+                       t.ID === taskId ||
+                       t['Task ID'] === taskId;
+            });
+            
+            if (!task) {
+                alert('Task not found. Please refresh the page and try again.');
+                console.error('Task not found. Available tasks:', tasks);
+                return;
+            }
+            
+            const status = document.getElementById('updateTaskStatus').value;
+            const progress = parseInt(document.getElementById('updateTaskProgress').value) || 0;
+            const remarks = document.getElementById('updateTaskRemarks').value.trim();
+            
+            const actualTaskId = task.id || task.taskid || task.taskId || task.ID || task['Task ID'];
+            
+            try {
+                showLoading(true);
+                const taskData = {
+                    title: task.title || '',
+                    description: task.description || '',
+                    store: task.store || '',
+                    assignedTo: task.assignedto || task.assignedTo || '',
+                    priority: task.priority || 'Medium',
+                    dueDate: task.duedate || '',
+                    status: status,
+                    progress: progress,
+                    remarks: remarks,
+                    updatedBy: 'Store Member'
+                };
+                
+                await updateTaskInSheet(actualTaskId, taskData);
+                closeModal();
+                await loadData();
+                alert('✅ Task progress updated successfully!');
+            } catch (error) {
+                alert('❌ Failed to update task: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ========================================
+        // BULLETIN OPERATIONS
+        // ========================================
+        function showAddBulletin() {
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').textContent = 'Add Bulletin Post';
+            
+            let html = `
+                <div class="form-group">
+                    <label>Content *</label>
+                    <textarea id="bulletinContentInput" required placeholder="Enter your announcement, reminder, or note"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="bulletinType">
+                        <option value="Announcement">Announcement</option>
+                        <option value="Reminder">Reminder</option>
+                        <option value="Note" selected>Note</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="addBulletin()" style="width: 100%;">
+                    <i class="fas fa-save"></i> Add Post
+                </button>
+            `;
+            
+            document.getElementById('modalBody').innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        async function addBulletin() {
+            const content = document.getElementById('bulletinContentInput').value.trim();
+            const type = document.getElementById('bulletinType').value;
+            
+            if (!content) {
+                alert('Please enter content for the bulletin post.');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                await addBulletinToSheet(content, type);
+                closeModal();
+                await loadData();
+                alert('✅ Bulletin post added!');
+            } catch (error) {
+                alert('❌ Failed to add bulletin: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ========================================
+        // ADMIN TABS
+        // ========================================
+        function switchAdminTab(tab) {
+            currentAdminTab = tab;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector(`.tab-btn[onclick*="${tab}"]`).classList.add('active');
+            document.getElementById(`admin-${tab}`).classList.add('active');
+            
+            if (tab === 'stores') renderStores();
+            if (tab === 'activity') renderActivityLog();
+        }
+
+        // ========================================
+        // PASSWORD VERIFICATION
+        // ========================================
+        function verifyPassword() {
+            const password = prompt('🔐 Enter admin password to continue:');
+            if (password === null) return false;
+            if (password === CONFIG.ADMIN_PASSWORD) return true;
+            alert('❌ Incorrect password!');
+            return false;
+        }
+
+        // ========================================
+        // UTILITY FUNCTIONS
+        // ========================================
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorDisplay');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorDisplay').style.display = 'none';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            document.getElementById('modalBody').innerHTML = '';
+        }
+
+        function filterTasks() {
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            searchTerm = search;
+            
+            if (!search) {
+                filteredTasks = tasks;
+            } else {
+                filteredTasks = tasks.filter(task => 
+                    (task.title || '').toLowerCase().includes(search) ||
+                    (task.description || '').toLowerCase().includes(search) ||
+                    (task.store || '').toLowerCase().includes(search) ||
+                    (task.assignedto || task.assignedTo || '').toLowerCase().includes(search)
+                );
+            }
+            renderAllTasks();
+        }
+
+        function clearFilter() {
+            document.getElementById('searchInput').value = '';
+            searchTerm = '';
+            filteredTasks = tasks;
+            renderAllTasks();
+        }
+
+        function loadStoreTasks() {
+            renderStoreTasks();
+        }
+
+        // ========================================
+        // NAVIGATION
+        // ========================================
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const view = this.dataset.view;
+                switchView(view);
+            });
+        });
+
+        function switchView(view) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.nav-btn[data-view="${view}"]`).classList.add('active');
+            
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(`view-${view}`).classList.add('active');
+            
+            if (view === 'store') {
+                renderStoreTasks();
+            }
+            if (view === 'dashboard') {
+                renderCharts();
+            }
+            if (view === 'admin') {
+                switchAdminTab(currentAdminTab);
+            }
+        }
+
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        loadData();
+        
+        setInterval(() => {
+            loadData();
+        }, 60000);
+
+        console.log('✅ Team Task Tracker initialized!');
+        console.log('ℹ️ Admin password:', CONFIG.ADMIN_PASSWORD);
+        console.log('ℹ️ API URL:', CONFIG.API_URL);
+    </script>
+</body>
+</html>

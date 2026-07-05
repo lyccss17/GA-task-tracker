@@ -1057,7 +1057,7 @@ function isDateOverdue(dateStr) {
         `);
     }
 
-function showDayTasks(dateStr) {
+ function showDayTasks(dateStr) {
     const dayTasks = tasks.filter(t => {
         const due = formatDate(t.duedate);
         return due === dateStr;
@@ -1088,13 +1088,10 @@ function showDayTasks(dateStr) {
         </div>`;
     });
     html += `</div>`;
-    
-    // FIXED: Build display date without timezone issues
-    const dateParts = dateStr.split('-');
-    const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-    const dateDisplay = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    const dateDisplay = new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
     openModal(`📅 ${dateDisplay} (${dayTasks.length} tasks)`, html);
 }
+
     // ========== LOAD ==========
     async function loadData() {
         showLoading(true); hideError();
@@ -1478,4 +1475,4 @@ function showDayTasks(dateStr) {
     console.log('✅ TaskFlow loaded. Features: Notifications, Calendar with Task Titles, Task Filter');
 </script>
 </body>
-</html>
+</html>   

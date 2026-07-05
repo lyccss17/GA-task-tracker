@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -189,17 +189,16 @@
         .bulletin-board {
             display: flex;
             flex-wrap: wrap;
-            gap: 1.5rem;
+            gap: 1rem;
             padding: 0.5rem 0 0.2rem;
         }
         .sticky-note {
             background: #fef9c3;
-            padding: 1rem 1.2rem 0.8rem;
-            border-radius: 16px 16px 16px 4px;
+            padding: 1rem 1rem 0.8rem;
+            border-radius: 12px 12px 12px 4px;
             box-shadow: 0 6px 14px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.02);
-            min-width: 220px;
-            max-width: 340px;
-            flex: 1 1 auto;
+            width: 220px;
+            min-height: 140px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -213,42 +212,29 @@
         .sticky-note:nth-child(5n) { --rot: -2deg; background: #fce4ec; }
         .sticky-note:hover { transform: scale(1.01) rotate(0deg); box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
         .sticky-note .note-content {
-            font-size: 0.95rem;
-            line-height: 1.5;
+            font-size: 0.9rem;
+            line-height: 1.4;
             color: #1e293b;
             word-break: break-word;
             flex: 1;
-            margin-bottom: 0.5rem;
         }
         .sticky-note .note-attachment {
-            margin-top: 0.5rem;
-            border-radius: 10px;
-            overflow: hidden;
-            background: rgba(255,255,255,0.6);
-            padding: 0.3rem;
-        }
-        .sticky-note .note-attachment img {
-            width: 100%;
-            height: auto;
-            max-height: 180px;
-            object-fit: contain;
-            border-radius: 8px;
-            display: block;
-        }
-        .sticky-note .note-attachment .file-attachment {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 0.6rem;
+            margin-top: 0.4rem;
+            font-size: 0.7rem;
             background: rgba(0,0,0,0.04);
+            padding: 0.2rem 0.5rem;
             border-radius: 8px;
-            font-size: 0.75rem;
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .sticky-note .note-attachment a {
             color: #2563eb;
             text-decoration: none;
         }
-        .sticky-note .note-attachment .file-attachment:hover {
-            background: rgba(0,0,0,0.08);
-        }
+        .sticky-note .note-attachment a:hover { text-decoration: underline; }
         .sticky-note .note-footer {
             display: flex;
             justify-content: space-between;
@@ -511,33 +497,6 @@
         }
         .task-filter-btns .btn { font-size: 0.7rem; padding: 0.2rem 0.8rem; }
         
-        /* Attachment preview in modal */
-        .attachment-preview {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.3rem 0.6rem;
-            background: #f1f5f9;
-            border-radius: 8px;
-            margin-top: 0.3rem;
-            font-size: 0.8rem;
-            flex-wrap: wrap;
-        }
-        .attachment-preview img {
-            max-height: 60px;
-            max-width: 80px;
-            border-radius: 4px;
-            object-fit: cover;
-        }
-        .attachment-preview i { color: #667eea; }
-        .attachment-preview .remove-attachment {
-            background: none;
-            border: none;
-            color: #ef4444;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-        
         @media (max-width: 860px) {
             .dash-row-1, .dash-row-2 { grid-template-columns: 1fr 1fr; }
             .profile-card { grid-column: auto; }
@@ -547,12 +506,11 @@
             .notification-panel { width: 300px; right: -320px; }
             .calendar-day { min-height: 50px; }
             .calendar-day .day-tasks { display: none; }
-            .sticky-note { max-width: 100%; min-width: 160px; }
         }
         @media (max-width: 500px) {
             .dash-row-1, .dash-row-2 { grid-template-columns: 1fr; }
             .profile-card { grid-column: auto; }
-            .sticky-note { width: 100%; max-width: 100%; min-width: auto; }
+            .sticky-note { width: 100%; }
             .notification-panel { width: 100%; right: -100%; top: 60px; max-height: 70vh; }
         }
         .loading { text-align: center; padding: 2rem; }
@@ -568,6 +526,26 @@
         .toast-error { background: #f87171; }
         .toast-info { background: #667eea; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Attachment preview in modal */
+        .attachment-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.6rem;
+            background: #f1f5f9;
+            border-radius: 8px;
+            margin-top: 0.3rem;
+            font-size: 0.8rem;
+        }
+        .attachment-preview i { color: #667eea; }
+        .attachment-preview .remove-attachment {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -730,12 +708,11 @@
     };
 
     let tasks=[], bulletins=[], stores=[], activityLog=[], charts={}, searchTerm='', filteredTasks=[], currentAdminTab='stores';
-    let currentTaskFilter = 'all';
+    let currentTaskFilter = 'all'; // 'all', 'active', 'completed'
     let calendarDate = new Date();
     let notifications = [];
     let notificationIdCounter = 0;
     let hasRequestedNotificationPermission = false;
-    let pendingAttachment = null;
 
     // ========== NOTIFICATIONS ==========
     function requestNotificationPermission() {
@@ -747,8 +724,10 @@
     }
 
     function sendBrowserNotification(title, body, icon = '📋') {
+        // In-app notification
         addNotification(title, body);
         
+        // Browser notification (even when site is not active)
         if (!('Notification' in window)) return;
         if (Notification.permission !== 'granted') {
             if (Notification.permission === 'default' && !hasRequestedNotificationPermission) {
@@ -844,6 +823,7 @@
         const panel = document.getElementById('notificationPanel');
         panel.classList.toggle('open');
         if (panel.classList.contains('open')) {
+            // Mark as read when opened
             const unread = notifications.filter(n => !n.read);
             if (unread.length) {
                 unread.forEach(n => n.read = true);
@@ -877,36 +857,12 @@
     // ========== API ==========
     function formatDate(d) { if(!d) return ''; if(typeof d==='string' && d.includes('T')) return d.split('T')[0]; return d; }
     
-   // ========== UPDATED API WITH ATTACHMENT HANDLING ==========
-
-async function callAPI(action, data = {}) {
-    // Handle large attachments - send as separate parameter
-    const params = new URLSearchParams();
-    params.append('action', action);
-    
-    for (const [key, value] of Object.entries(data)) {
-        // For attachment data, we need to handle it differently
-        if (key === 'attachment' && value && value.startsWith('data:')) {
-            // Check size - if too large, compress or warn
-            const sizeInBytes = value.length * 3 / 4; // approximate base64 size
-            if (sizeInBytes > 30000) {
-                // For images, try to compress
-                if (value.startsWith('data:image/')) {
-                    // You could add image compression here
-                    console.warn('Image is large (' + (sizeInBytes/1024).toFixed(1) + 'KB), may not save to sheet');
-                }
-                // Still send but it might fail if too large
-            }
-            params.append(key, value);
-        } else {
-            params.append(key, value);
-        }
+    async function callAPI(action, data={}) {
+        const params = new URLSearchParams({action,...data});
+        const res = await fetch(`${CONFIG.API_URL}?${params.toString()}`);
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
     }
-    
-    const res = await fetch(`${CONFIG.API_URL}?${params.toString()}`);
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-}
     
     async function fetchTasks() { return (await callAPI('getTasks'))||[]; }
     async function fetchBulletins() { return (await callAPI('getBulletins'))||[]; }
@@ -991,17 +947,20 @@ async function callAPI(action, data = {}) {
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         dayNames.forEach(d => html += `<div class="calendar-header">${d}</div>`);
         
+        // Previous month days
         const startOffset = firstDay;
         for (let i = startOffset - 1; i >= 0; i--) {
             const day = daysInPrevMonth - i;
             html += `<div class="calendar-day empty"><div class="day-number" style="color:#94a3b8;">${day}</div></div>`;
         }
         
+        // Current month days
         for (let day = 1; day <= daysInMonth; day++) {
             const dateObj = new Date(year, month, day);
             const dateStr = dateObj.toISOString().split('T')[0];
             const isToday = dateStr === todayStr;
             
+            // Get tasks for this day
             const dayTasks = tasks.filter(t => {
                 const due = formatDate(t.duedate);
                 return due === dateStr;
@@ -1029,6 +988,7 @@ async function callAPI(action, data = {}) {
             </div>`;
         }
         
+        // Next month days
         const remaining = (7 - ((firstDay + daysInMonth) % 7)) % 7;
         for (let day = 1; day <= remaining; day++) {
             html += `<div class="calendar-day empty"><div class="day-number" style="color:#94a3b8;">${day}</div></div>`;
@@ -1077,7 +1037,7 @@ async function callAPI(action, data = {}) {
             stores=s||[]; 
             activityLog=a||[];
             
-            // Check for new tasks
+            // Check for new tasks and send notifications
             if (oldTasks.length) {
                 const newTasks = tasks.filter(t => !oldTasks.some(ot => (ot.id||ot.taskid) === (t.id||t.taskid)));
                 newTasks.forEach(task => {
@@ -1123,52 +1083,22 @@ async function callAPI(action, data = {}) {
     
     function renderBulletin() {
         const c=document.getElementById('bulletinContent');
-        if(!bulletins.length){ 
-            c.innerHTML='<div class="empty-state"><i class="fas fa-thumbtack"></i><p>No posts yet. Click "Add" to create one!</p></div>'; 
-            return; 
-        }
+        if(!bulletins.length){ c.innerHTML='<div class="empty-state"><i class="fas fa-thumbtack"></i><p>No posts</p></div>'; return; }
         let html='';
-        // Sort: newest first (most recent date posted)
-        const sorted = [...bulletins].sort((a, b) => {
-            const dateA = new Date(a.dateposted || a.date || 0);
-            const dateB = new Date(b.dateposted || b.date || 0);
-            return dateB - dateA;
-        });
+        const sorted = [...bulletins].reverse();
         sorted.forEach(post=>{
             const id = getBulletinId(post);
             let date=post.dateposted||post.date||'';
             if(date.includes('T')){ const d=new Date(date); d.setHours(d.getHours()+8); date=d.toISOString().replace('T',' ').slice(0,16); }
-            
             let attachmentHtml = '';
             if (post.attachment) {
-                const isImage = typeof post.attachment === 'string' && 
-                    (post.attachment.match(/^data:image/) || post.attachment.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i));
+                const isImage = post.attachment.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
                 if (isImage) {
-                    attachmentHtml = `<div class="note-attachment"><img src="${post.attachment}" alt="Attachment" loading="lazy"></div>`;
-                } else if (typeof post.attachment === 'string' && post.attachment.startsWith('data:')) {
-                    // Other file types (PDF, DOC, etc.) - show as icon with link
-                    const fileExt = post.attachment.split(';')[0].split('/')[1] || 'file';
-                    attachmentHtml = `<div class="note-attachment">
-                        <a href="${post.attachment}" target="_blank" class="file-attachment">
-                            <i class="fas fa-${fileExt === 'pdf' ? 'file-pdf' : fileExt === 'zip' ? 'file-archive' : 'file'}"></i>
-                            ${fileExt.toUpperCase()} file
-                        </a>
-                    </div>`;
-                } else if (typeof post.attachment === 'string') {
-                    // URL or path - try to display as image or link
-                    const isImageUrl = post.attachment.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
-                    if (isImageUrl) {
-                        attachmentHtml = `<div class="note-attachment"><img src="${post.attachment}" alt="Attachment" loading="lazy"></div>`;
-                    } else {
-                        attachmentHtml = `<div class="note-attachment">
-                            <a href="${post.attachment}" target="_blank" class="file-attachment">
-                                <i class="fas fa-external-link-alt"></i> View Attachment
-                            </a>
-                        </div>`;
-                    }
+                    attachmentHtml = `<div class="note-attachment"><i class="fas fa-image"></i> <a href="${post.attachment}" target="_blank">View Image</a></div>`;
+                } else {
+                    attachmentHtml = `<div class="note-attachment"><i class="fas fa-paperclip"></i> <a href="${post.attachment}" target="_blank">${post.attachment.split('/').pop() || 'Attachment'}</a></div>`;
                 }
             }
-            
             html+=`<div class="sticky-note">
                 <div>
                     <div class="note-content">${post.content||''}</div>
@@ -1366,6 +1296,8 @@ async function callAPI(action, data = {}) {
     }
 
     // ========== BULLETIN CRUD (WITH ATTACHMENTS) ==========
+    let pendingAttachment = null;
+
     function showAddBulletin(){ 
         openModal('Add Bulletin', `
             <div class="form-group"><label>Content *</label><textarea id="bulletinContentInput" required></textarea></div>
@@ -1384,6 +1316,7 @@ async function callAPI(action, data = {}) {
         const file = event.target.files[0];
         if (!file) { pendingAttachment = null; document.getElementById('attachmentPreview').innerHTML = ''; return; }
         
+        // For demo, we'll store the file name and a data URL
         const reader = new FileReader();
         reader.onload = function(e) {
             pendingAttachment = {
@@ -1395,7 +1328,7 @@ async function callAPI(action, data = {}) {
             if (file.type.startsWith('image/')) {
                 preview.innerHTML = `<div class="attachment-preview">
                     <i class="fas fa-image"></i> ${file.name} 
-                    <img src="${e.target.result}" style="max-height:60px;max-width:80px;border-radius:4px;object-fit:cover;">
+                    <img src="${e.target.result}" style="max-height:40px;max-width:60px;border-radius:4px;object-fit:cover;">
                     <button class="remove-attachment" onclick="removeAttachment()"><i class="fas fa-times"></i></button>
                 </div>`;
             } else {
@@ -1420,6 +1353,7 @@ async function callAPI(action, data = {}) {
         
         let attachmentData = null;
         if (pendingAttachment) {
+            // Store as data URL for demo. In production, you'd upload to a server
             attachmentData = pendingAttachment.data;
         }
         
@@ -1466,7 +1400,7 @@ async function callAPI(action, data = {}) {
         if (post.attachment) {
             const isImage = typeof post.attachment === 'string' && post.attachment.match(/^data:image/);
             if (isImage) {
-                attachmentHtml = `<div class="attachment-preview"><i class="fas fa-image"></i> Has attachment <img src="${post.attachment}" style="max-height:60px;max-width:80px;border-radius:4px;object-fit:cover;"></div>`;
+                attachmentHtml = `<div class="attachment-preview"><i class="fas fa-image"></i> Has attachment <img src="${post.attachment}" style="max-height:40px;max-width:60px;border-radius:4px;object-fit:cover;"></div>`;
             } else {
                 attachmentHtml = `<div class="attachment-preview"><i class="fas fa-paperclip"></i> Has attachment</div>`;
             }
@@ -1496,7 +1430,7 @@ async function callAPI(action, data = {}) {
             window._editAttachment = e.target.result;
             const preview = document.getElementById('editAttachmentPreview');
             if (file.type.startsWith('image/')) {
-                preview.innerHTML = `<div class="attachment-preview"><i class="fas fa-image"></i> ${file.name} <img src="${e.target.result}" style="max-height:60px;max-width:80px;border-radius:4px;object-fit:cover;"></div>`;
+                preview.innerHTML = `<div class="attachment-preview"><i class="fas fa-image"></i> ${file.name} <img src="${e.target.result}" style="max-height:40px;max-width:60px;border-radius:4px;object-fit:cover;"></div>`;
             } else {
                 preview.innerHTML = `<div class="attachment-preview"><i class="fas fa-paperclip"></i> ${file.name}</div>`;
             }
@@ -1587,6 +1521,7 @@ async function callAPI(action, data = {}) {
             if(v==='dashboard') renderCharts(); 
             if(v==='admin') switchAdminTab(currentAdminTab);
             if(v==='calendar') renderCalendar();
+            // Close notification panel when navigating
             document.getElementById('notificationPanel').classList.remove('open');
         });
     });
@@ -1594,12 +1529,13 @@ async function callAPI(action, data = {}) {
     document.getElementById('modal').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
 
     // ========== INIT ==========
+    // Request notification permission on load
     setTimeout(requestNotificationPermission, 1000);
 
     loadData();
     setInterval(loadData, 60000);
     
-    console.log('✅ TaskFlow loaded. Features: Attachments (image preview), Notifications, Calendar, Task Filter');
+    console.log('✅ TaskFlow loaded. Features: Attachments, Notifications, Calendar, Task Filter');
 </script>
 </body>
 </html>

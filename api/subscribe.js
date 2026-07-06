@@ -1,4 +1,4 @@
-// api/subscribe.js - Full Notification System
+
 const webPush = require('web-push');
 
 const VAPID_PUBLIC = 'BA2dgrOQ-6pW9gt1C3kbdoAzzk5on-lKyI2cgSwlLo9tqRHChGit1Ik3xdZrEDvv8P4LUOVBo2qWWWDzA7huRs4';
@@ -10,13 +10,12 @@ webPush.setVapidDetails(
     VAPID_PRIVATE
 );
 
-// Store subscriptions in memory
 let subscriptions = [];
 
-// Google Sheets API URL
+
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbx9n4ZMpquNsIj0xYpx3scQDihzGa7zibbrZiVWanSS8dD1fVL_FRdnmnYKiduWhY3m/exec';
 
-// Store previous state to detect changes
+
 let previousState = {
     tasks: [],
     bulletins: [],
@@ -33,7 +32,7 @@ module.exports = async (req, res) => {
         return res.status(200).end();
     }
 
-    // GET - Check status or trigger notifications
+    
     if (req.method === 'GET') {
         try {
             if (req.query.check === 'true') {
@@ -58,7 +57,7 @@ module.exports = async (req, res) => {
         }
     }
 
-    // POST - Subscribe
+
     if (req.method === 'POST') {
         try {
             const { subscription } = req.body;
@@ -73,7 +72,7 @@ module.exports = async (req, res) => {
                 console.log(`✅ New subscription. Total: ${subscriptions.length}`);
             }
 
-            // Send welcome notification
+            
             try {
                 await webPush.sendNotification(subscription, JSON.stringify({
                     title: '✅ Notifications Enabled!',
@@ -99,7 +98,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
 };
 
-// ========== MAIN CHECK FUNCTION ==========
+
 async function checkForUpdates() {
     try {
         console.log('📊 Fetching data from Google Sheets...');
@@ -115,7 +114,7 @@ async function checkForUpdates() {
         let notifications = [];
         let totalNotifications = 0;
 
-        // 1. Check for NEW tasks
+      
         if (previousState.tasks.length > 0 && tasks.length > previousState.tasks.length) {
             const newTasks = tasks.filter(task => {
                 const taskId = task.id || task.taskid || task.taskId || task.ID;
@@ -139,7 +138,7 @@ async function checkForUpdates() {
             }
         }
 
-        // 2. Check for OVERDUE tasks
+       
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const todayStr = today.toISOString().split('T')[0];
@@ -178,14 +177,13 @@ async function checkForUpdates() {
             }
         }
 
-        // 3. Check for COMPLETED tasks
         for (const task of tasks) {
             const status = (task.status || '').toLowerCase();
             const taskId = task.id || task.taskid || task.taskId || task.ID;
             const title = task.title || task.Title || 'Task';
             const assignedTo = task.assignedto || task.assignedTo || '';
 
-            // Find previous state
+           
             const prevTask = previousState.tasks.find(pt => {
                 const prevId = pt.id || pt.taskid || pt.taskId || pt.ID;
                 return prevId === taskId;
@@ -206,7 +204,7 @@ async function checkForUpdates() {
             }
         }
 
-        // 4. Check for NEW BULLETINS
+      
         if (previousState.bulletins.length > 0 && bulletins.length > previousState.bulletins.length) {
             const newBulletins = bulletins.filter(bulletin => {
                 const bId = bulletin.id || bulletin.bulletinid || bulletin.postid || bulletin['Bulletin ID'];
@@ -235,7 +233,7 @@ async function checkForUpdates() {
             }
         }
 
-        // Send all notifications
+       
         let sentCount = 0;
         for (const notif of notifications) {
             const success = await sendNotificationToAll(notif.title, notif.body, notif.icon);
@@ -244,7 +242,7 @@ async function checkForUpdates() {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
 
-        // Update state
+  
         previousState.tasks = tasks;
         previousState.bulletins = bulletins;
         previousState.lastCheck = new Date().toISOString();
@@ -268,9 +266,7 @@ async function checkForUpdates() {
     }
 }
 
-// ========== HELPER FUNCTIONS ==========
 
-// Fetch data from Google Sheets
 async function fetchData(action) {
     try {
         const response = await fetch(`${SHEET_API_URL}?action=${action}`);
@@ -282,7 +278,7 @@ async function fetchData(action) {
     }
 }
 
-// Send notification to all subscribers
+
 async function sendNotificationToAll(title, body, icon) {
     const payload = JSON.stringify({ 
         title, 
@@ -308,7 +304,7 @@ async function sendNotificationToAll(title, body, icon) {
         }
     }
 
-    // Remove invalid subscriptions
+    
     if (failedSubscriptions.length > 0) {
         subscriptions = subscriptions.filter(sub => 
             !failedSubscriptions.some(failed => failed.endpoint === sub.endpoint)
@@ -319,7 +315,7 @@ async function sendNotificationToAll(title, body, icon) {
     return sent;
 }
 
-// Initialize state on first run
+
 async function initializeState() {
     try {
         const [tasks, bulletins] = await Promise.all([

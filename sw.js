@@ -1,155 +1,59 @@
-// sw.js - Service Worker for push notifications
-const CACHE_NAME = 'task-tracker-v1';
+// sw.js - Simple Working Service Worker
+console.log('✅ Service Worker loading...');
 
-// Install event - cache static assets
-self.addEventListener('install', function(event) {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(function(cache) {
-            return cache.addAll([
-                '/',
-                '/icon-192.png',
-                '/badge-72.png'
-            ]);
-        }).then(function() {
-            return self.skipWaiting();
-        })
-    );
+// Install - skip waiting
+self.addEventListener('install', function(e) {
+    console.log('✅ SW installed');
+    e.waitUntil(self.skipWaiting());
 });
 
-// Activate event - clean old caches
-self.addEventListener('activate', function(event) {
-    event.waitUntil(
-        caches.keys().then(function(cacheNames) {
-            return Promise.all(
-                cacheNames.map(function(cacheName) {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        }).then(function() {
-            return self.clients.claim();
-        })
-    );
+// Activate - take control
+self.addEventListener('activate', function(e) {
+    console.log('✅ SW activated');
+    e.waitUntil(self.clients.claim());
 });
 
-// Push event - display notification
-self.addEventListener('push', function(event) {
-    console.log('Push event received:', event);
-
-    let data = {
-        title: 'Task Update',
-        body: 'You have a new task notification',
-        icon: '/icon-192.png',
-        badge: '/badge-72.png',
-        url: '/',
-        timestamp: Date.now()
-    };
-
-    if (event.data) {
+// Push notification
+self.addEventListener('push', function(e) {
+    console.log('📨 Push received!', e);
+    
+    let title = '📋 Task Update';
+    let body = 'You have a new notification';
+    let icon = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23667eea"%3E%3Cpath d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/%3E%3C/svg%3E';
+    
+    if (e.data) {
         try {
-            const parsedData = event.data.json();
-            data = { ...data, ...parsedData };
-        } catch (e) {
-            // If not JSON, use as text
-            data.body = event.data.text();
+            const data = e.data.json();
+            title = data.title || title;
+            body = data.body || body;
+            icon = data.icon || icon;
+        } catch(err) {
+            body = e.data.text();
         }
     }
-
-    const options = {
-        body: data.body,
-        icon: data.icon || '/icon-192.png',
-        badge: data.badge || '/badge-72.png',
-        vibrate: [200, 100, 200],
-        data: {
-            url: data.url || '/',
-            timestamp: data.timestamp || Date.now()
-        },
-        actions: [
-            {
-                action: 'open',
-                title: 'View Task'
-            },
-            {
-                action: 'dismiss',
-                title: 'Dismiss'
-            }
-        ],
-        requireInteraction: true,
-        tag: `task-${Date.now()}`
-    };
-
-    event.waitUntil(
-        self.registration.showNotification(data.title, options)
-    );
-});
-
-// Notification click event
-self.addEventListener('notificationclick', function(event) {
-    console.log('Notification clicked:', event);
-
-    event.notification.close();
-
-    if (event.action === 'dismiss') {
-        return;
-    }
-
-    // Open the app
-    event.waitUntil(
-        clients.matchAll({
-            type: 'window',
-            includeUncontrolled: true
-        }).then(function(clientList) {
-            // Check if there's already a window open
-            for (let i = 0; i < clientList.length; i++) {
-                const client = clientList[i];
-                if (client.url.includes('/') && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-            // Otherwise open a new window
-            if (clients.openWindow) {
-                const url = event.notification.data?.url || '/';
-                return clients.openWindow(url);
+    
+    e.waitUntil(
+        self.registration.showNotification(title, {
+            body: body,
+            icon: icon,
+            badge: icon,
+            vibrate: [200, 100, 200],
+            requireInteraction: true,
+            tag: 'task-notification',
+            data: {
+                url: '/'
             }
         })
     );
 });
 
-// Background sync - retry failed notifications
-self.addEventListener('sync', function(event) {
-    if (event.tag === 'task-sync') {
-        event.waitUntil(
-            // Retry logic for failed notifications
-            fetch('/api/subscribe?check=true', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(function(response) {
-                return response.json();
-            }).then(function(data) {
-                console.log('Background sync completed:', data);
-            }).catch(function(error) {
-                console.error('Background sync failed:', error);
-            })
-        );
-    }
-});
-
-// Handle offline requests
-self.addEventListener('fetch', function(event) {
-    event.respondWith(
-        caches.match(event.request).then(function(response) {
-            return response || fetch(event.request).catch(function() {
-                // Return offline fallback
-                return new Response('Offline - Task Tracker', {
-                    status: 503,
-                    statusText: 'Service Unavailable'
-                });
-            });
-        })
+// Click notification
+self.addEventListener('notificationclick', function(e) {
+    console.log('🔔 Notification clicked');
+    e.notification.close();
+    e.waitUntil(
+        clients.openWindow(e.notification.data?.url || '/')
     );
 });
 
-console.log('Service Worker loaded successfully');
+console.log('✅ Service Worker ready!');

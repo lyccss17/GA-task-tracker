@@ -5,8 +5,5 @@
     "main": "api/subscribe.js",
     "dependencies": {
         "web-push": "^3.6.0"
-    },
-    "scripts": {
-        "vercel-build": "echo Hello"
     }
 }

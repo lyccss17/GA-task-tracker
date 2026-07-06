@@ -1,1 +1,25 @@
-
+{
+    "functions": {
+        "api/**/*.js": {
+            "runtime": "nodejs20.x"
+        }
+    },
+    "crons": [
+        {
+            "path": "/api/subscribe?check=true",
+            "schedule": "*/5 * * * *"
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ],
+    "builds": [
+        {
+            "src": "api/**/*.js",
+            "use": "@vercel/node"
+        }
+    ]
+}

@@ -7,7 +7,9 @@
     <link rel="icon" type="image/png" href="LOGO.jpg">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
+   <link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/icon-192.png">
+   <style>
        * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
@@ -756,6 +758,7 @@ tr:hover { background: rgba(240, 168, 196, 0.08); }
     // ========== CONFIG ==========
     const CONFIG = { 
         API_URL: 'https://script.google.com/macros/s/AKfycbx9n4ZMpquNsIj0xYpx3scQDihzGa7zibbrZiVWanSS8dD1fVL_FRdnmnYKiduWhY3m/exec', 
+        PUSH_API_URL: '/api/subscribe', 
         ADMIN_PASSWORD: 'admin123' 
     };
 
@@ -1468,5 +1471,295 @@ tr:hover { background: rgba(240, 168, 196, 0.08); }
     
     console.log('✅ TaskFlow loaded. Features: Notifications, Calendar with Task Titles, Task Filter');
 </script>
+
+<!-- ========== PUSH NOTIFICATIONS SCRIPT ========== -->
+<script>
+    // Push Notification Configuration
+    const PUSH_CONFIG = {
+        VAPID_PUBLIC_KEY: 'BA2dgrOQ-6pW9gt1C3kbdoAzzk5on-lKyI2cgSwlLo9tqRHChGit1Ik3xdZrEDvv8P4LUOVBo2qWWWDzA7huRs4',
+        API_URL: '/api/subscribe', // Your Vercel API endpoint
+        SERVICE_WORKER: '/sw.js'
+    };
+
+    // Push Notification Manager
+    class PushManager {
+        constructor() {
+            this.subscription = null;
+            this.isSubscribed = false;
+            this.registration = null;
+        }
+
+        async init() {
+            console.log('Initializing Push Manager...');
+            if (!('serviceWorker' in navigator)) {
+                console.log('Service Worker not supported');
+                return false;
+            }
+
+            if (!('PushManager' in window)) {
+                console.log('Push notifications not supported');
+                return false;
+            }
+
+            try {
+                // Register Service Worker
+                this.registration = await navigator.serviceWorker.register(PUSH_CONFIG.SERVICE_WORKER);
+                console.log('Service Worker registered');
+
+                // Check permission
+                if (Notification.permission === 'granted') {
+                    await this.subscribe();
+                    return true;
+                } else if (Notification.permission === 'denied') {
+                    console.log('Notification permission denied');
+                    return false;
+                }
+
+                return true;
+            } catch (error) {
+                console.error('Push initialization error:', error);
+                return false;
+            }
+        }
+
+        async subscribe() {
+            try {
+                // Wait for permission
+                if (Notification.permission !== 'granted') {
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') {
+                        throw new Error('Permission not granted');
+                    }
+                }
+
+                // Get subscription
+                this.subscription = await this.registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: PUSH_CONFIG.VAPID_PUBLIC_KEY
+                });
+
+                this.isSubscribed = true;
+
+                // Send subscription to server
+                await this.sendSubscriptionToServer();
+
+                console.log('Push subscription successful');
+                return true;
+            } catch (error) {
+                console.error('Subscribe error:', error);
+                this.isSubscribed = false;
+                return false;
+            }
+        }
+
+        async sendSubscriptionToServer() {
+            if (!this.subscription) return;
+
+            try {
+                const response = await fetch(PUSH_CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        subscription: this.subscription
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Subscription sent to server:', data);
+                return data;
+            } catch (error) {
+                console.error('Failed to send subscription:', error);
+                throw error;
+            }
+        }
+
+        async unsubscribe() {
+            if (!this.subscription) return;
+
+            try {
+                const success = await this.subscription.unsubscribe();
+                this.isSubscribed = false;
+                this.subscription = null;
+                console.log('Unsubscribed:', success);
+                return success;
+            } catch (error) {
+                console.error('Unsubscribe error:', error);
+                return false;
+            }
+        }
+
+        getStatus() {
+            return {
+                isSubscribed: this.isSubscribed,
+                permission: Notification.permission,
+                hasSubscription: !!this.subscription,
+                endpoint: this.subscription?.endpoint?.substring(0, 50) + '...' || 'none'
+            };
+        }
+    }
+
+    // Initialize Push Manager
+    const pushManager = new PushManager();
+
+    // ========== UI Integration ==========
+    // Add notification status indicator to navbar
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add notification status to navbar
+        const navLinks = document.querySelector('.nav-links');
+        if (navLinks) {
+            const statusBtn = document.createElement('button');
+            statusBtn.className = 'nav-btn';
+            statusBtn.id = 'pushStatusBtn';
+            statusBtn.innerHTML = '<i class="fas fa-bell"></i> <span id="pushStatusText">🔕 Off</span>';
+            statusBtn.onclick = togglePushNotifications;
+            navLinks.insertBefore(statusBtn, navLinks.children[0]);
+        }
+
+        // Initialize push
+        setTimeout(async function() {
+            await pushManager.init();
+            updatePushStatusUI();
+            
+            // Try to subscribe if permission granted
+            if (Notification.permission === 'granted') {
+                await pushManager.subscribe();
+                updatePushStatusUI();
+            }
+        }, 2000);
+    });
+
+    // Toggle push notifications
+    async function togglePushNotifications() {
+        if (pushManager.isSubscribed) {
+            await pushManager.unsubscribe();
+            showToast('🔕 Notifications disabled', 'info');
+        } else {
+            const success = await pushManager.subscribe();
+            if (success) {
+                showToast('🔔 Notifications enabled!', 'success');
+                // Send test notification
+                await sendTestNotification();
+            } else {
+                showToast('❌ Failed to enable notifications', 'error');
+            }
+        }
+        updatePushStatusUI();
+    }
+
+    // Send test notification
+    async function sendTestNotification() {
+        try {
+            const response = await fetch(PUSH_CONFIG.API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    subscription: pushManager.subscription,
+                    test: true
+                })
+            });
+
+            if (response.ok) {
+                console.log('Test notification sent');
+            }
+        } catch (error) {
+            console.error('Test notification failed:', error);
+        }
+    }
+
+    // Update UI status
+    function updatePushStatusUI() {
+        const statusText = document.getElementById('pushStatusText');
+        if (statusText) {
+            if (pushManager.isSubscribed) {
+                statusText.textContent = '🔔 On';
+                statusText.style.color = '#34d399';
+            } else {
+                statusText.textContent = '🔕 Off';
+                statusText.style.color = '#f87171';
+            }
+        }
+
+        // Update notification badge
+        updateNotificationBadge();
+    }
+
+    // Override notification badge update
+    const originalUpdateBadge = updateNotificationBadge;
+    updateNotificationBadge = function() {
+        if (originalUpdateBadge) {
+            originalUpdateBadge();
+        }
+        // Show push status
+        if (pushManager.isSubscribed) {
+            const badge = document.getElementById('notifBadge');
+            if (badge) {
+                badge.textContent = '🔔';
+                badge.style.display = 'inline';
+            }
+        }
+    };
+
+    // Enhance addNotification to use push
+    const originalAddNotification = addNotification;
+    addNotification = function(title, body, type = 'info') {
+        // Call original
+        if (originalAddNotification) {
+            originalAddNotification(title, body, type);
+        }
+
+        // Send push if subscribed
+        if (pushManager.isSubscribed) {
+            // The push will be sent via the server when it detects changes
+            // But we can also send a local test notification
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification(title, {
+                        body: body,
+                        icon: '/icon-192.png',
+                        badge: '/badge-72.png',
+                        vibrate: [200, 100, 200],
+                        tag: `notif-${Date.now()}`
+                    });
+                }).catch(function(error) {
+                    console.error('Failed to show notification:', error);
+                });
+            }
+        }
+    };
+
+    // Override loadData to check for notifications
+    const originalLoadData = loadData;
+    loadData = async function() {
+        // Call original
+        if (originalLoadData) {
+            await originalLoadData();
+        }
+
+        // Check for push notification updates
+        if (pushManager.isSubscribed) {
+            try {
+                const response = await fetch('/api/subscribe?check=true');
+                const data = await response.json();
+                if (data.success) {
+                    console.log('Push check completed:', data);
+                }
+            } catch (error) {
+                console.error('Push check failed:', error);
+            }
+        }
+    };
+
+    console.log('Push Notification system loaded!');
+    console.log('Status:', pushManager.getStatus());
+</script>
+
 </body>
 </html>
